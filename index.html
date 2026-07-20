@@ -3,33 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Помощник по ремонту</title>
+    <title>Помощник по бурению</title>
     
-    <!-- PWA мета-теги -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Ремонт">
+    <meta name="apple-mobile-web-app-title" content="Бурение">
     <meta name="theme-color" content="#1a1a2e">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>">
     
-    <!-- Service Worker -->
     <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
-                const CACHE = 'repair-v2';
+                const CACHE = 'drilling-v1';
                 self.addEventListener('install', e => {
-                    e.waitUntil(
-                        caches.open(CACHE).then(cache => 
-                            cache.addAll(['/'])
-                        )
-                    );
+                    e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['/'])));
                     self.skipWaiting();
                 });
                 self.addEventListener('fetch', e => {
-                    e.respondWith(
-                        caches.match(e.request).then(r => r || fetch(e.request))
-                    );
+                    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
                 });
             `));
         });
@@ -46,18 +38,12 @@
             --text-secondary: #a0a0b0;
             --success: #2ecc71;
             --warning: #f39c12;
+            --info: #3498db;
         }
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        html, body {
-            height: 100%;
-            overflow-x: hidden;
-        }
+        html, body { height: 100%; overflow-x: hidden; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -67,10 +53,7 @@
             user-select: none;
             -webkit-user-select: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -79,7 +62,7 @@
             width: 100%;
             max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 16px;
             padding-bottom: 40px;
             min-height: 100vh;
             min-height: -webkit-fill-available;
@@ -87,105 +70,110 @@
         
         .header {
             text-align: center;
-            padding: 30px 0 20px;
+            padding: 24px 0 16px;
         }
         
-        .logo {
-            font-size: 42px;
-            margin-bottom: 8px;
-        }
+        .logo { font-size: 42px; margin-bottom: 8px; }
+        .title { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+        .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         
-        .title {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        
-        .subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-        
-        .progress {
+        /* Индикатор шагов */
+        .steps-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 20px;
             padding: 0 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
-        .step-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+        .step-badge {
             background: var(--primary);
-            flex-shrink: 0;
+            color: var(--text-secondary);
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
         }
         
-        .step-dot.active {
+        .step-badge.active {
             background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
+            color: #fff;
         }
         
-        .step-dot.done {
+        .step-badge.done {
             background: var(--success);
+            color: #fff;
         }
         
-        .step-line {
-            flex: 1;
-            height: 1px;
-            background: var(--primary);
+        .step-arrow {
+            color: var(--text-secondary);
+            font-size: 10px;
         }
         
         .card {
             background: var(--card);
             border-radius: 20px;
-            padding: 30px 24px;
-            margin-bottom: 20px;
+            padding: 24px 20px;
+            margin-bottom: 16px;
             border: 1px solid rgba(255,255,255,0.05);
             animation: fadeIn 0.3s ease;
         }
         
-        .category-badge {
+        .situation-badge {
             display: inline-block;
-            background: var(--primary);
-            color: var(--text-secondary);
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--info);
             font-size: 11px;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             margin-bottom: 16px;
+            font-weight: 600;
             letter-spacing: 0.5px;
-            text-transform: uppercase;
         }
+        
+        .step-number {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .question-emoji { font-size: 48px; margin-bottom: 12px; }
         
         .question {
             font-size: 20px;
             font-weight: 600;
             line-height: 1.4;
-            margin-bottom: 30px;
+            margin-bottom: 8px;
         }
         
-        .question-emoji {
-            font-size: 48px;
-            margin-bottom: 16px;
+        .question-comment {
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--warning);
+            padding: 12px 14px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
         }
         
         .answers {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         
         .btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 18px 24px;
+            gap: 8px;
+            padding: 16px 20px;
             border: none;
             border-radius: 14px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -196,11 +184,10 @@
             -webkit-appearance: none;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            line-height: 1.3;
         }
         
-        .btn:active {
-            transform: scale(0.97);
-        }
+        .btn:active { transform: scale(0.97); }
         
         .btn-yes {
             background: var(--success);
@@ -212,12 +199,7 @@
             box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3);
         }
         
-        .btn-action {
-            background: var(--primary);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .btn-neutral {
+        .btn-extra {
             background: var(--warning);
             box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
         }
@@ -227,76 +209,69 @@
             border: 1px solid rgba(255,255,255,0.2);
             color: var(--text-secondary);
             font-weight: 500;
-            margin-top: 8px;
+            margin-top: 6px;
+            padding: 14px;
+            font-size: 14px;
         }
         
-        .btn-full {
-            width: 100%;
-        }
+        .btn-full { width: 100%; }
         
+        /* Решение */
         .solution-card {
             background: linear-gradient(135deg, #16213e 0%, #1a2744 100%);
             border: 1px solid var(--success);
             box-shadow: 0 0 30px rgba(46, 204, 113, 0.1);
         }
         
-        .solution-title {
-            font-size: 16px;
-            color: var(--success);
+        .solution-label {
+            display: inline-block;
+            background: var(--success);
+            color: #fff;
+            font-size: 11px;
+            padding: 5px 14px;
+            border-radius: 20px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 16px;
         }
         
+        .solution-emoji { font-size: 48px; margin-bottom: 12px; }
+        
         .solution-text {
-            font-size: 18px;
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
         
         .solution-steps {
             background: rgba(0,0,0,0.2);
             border-radius: 12px;
             padding: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         
-        .solution-steps ol {
-            padding-left: 20px;
-        }
+        .solution-steps ol { padding-left: 20px; }
         
         .solution-steps li {
             margin-bottom: 8px;
             line-height: 1.5;
             color: var(--text-secondary);
+            font-size: 14px;
         }
         
         .contact-info {
             background: rgba(233, 68, 96, 0.1);
             border-radius: 12px;
             padding: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-align: center;
         }
         
-        .contact-label {
-            font-size: 12px;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .contact-phone {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 4px 0;
-        }
-        
-        .contact-name {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
+        .contact-label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .contact-phone { font-size: 20px; font-weight: 700; margin: 4px 0; }
+        .contact-name { font-size: 13px; color: var(--text-secondary); }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -313,378 +288,133 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🔧</div>
-            <div class="title">Мастер-помощник</div>
-            <div class="subtitle">Диагностика оборудования</div>
+            <div class="logo">⛏️</div>
+            <div class="title">Помощник буровика</div>
+            <div class="subtitle">Диагностика и решения</div>
         </div>
         
-        <div class="progress" id="progress"></div>
-        
+        <div class="steps-indicator" id="stepsIndicator"></div>
         <div class="card" id="mainCard"></div>
     </div>
     
     <script>
         // ============================================
-        // ДЕРЕВО РЕШЕНИЙ
+        // ДЕРЕВО РЕШЕНИЙ — Низкий уровень подземных вод
         // ============================================
         const tree = {
-            start: {
-                category: "Насос в скважине",
-                emoji: "💧",
-                question: "Не работает насос. Есть ли электричество в доме?",
-                answers: [
-                    { text: "Да, свет есть", next: "check_automaton", type: "yes" },
-                    { text: "Нет, света нет", next: "no_power", type: "no" },
+            // Главное меню (потом добавим другие ситуации)
+            menu: {
+                type: 'menu',
+                title: 'Выберите ситуацию',
+                emoji: '📋',
+                items: [
+                    { text: '💧 Низкий уровень подземных вод', next: 'low_water_step1' },
+                    // Здесь будут добавляться другие ситуации
                 ]
             },
             
-            check_automaton: {
-                category: "Шаг 2",
-                emoji: "⚡",
-                question: "Проверьте автомат насоса в щитке. Он включен?",
+            // Шаг 1: Пакер
+            low_water_step1: {
+                situation: 'Низкий уровень подземных вод',
+                step: 1,
+                totalSteps: 3,
+                emoji: '🔧',
+                question: 'Установлен ли пакер?',
+                comment: '',
                 answers: [
-                    { text: "Да, автомат включен", next: "check_pressure", type: "yes" },
-                    { text: "Нет, автомат выбит", next: "automaton_off", type: "no" },
-                    { text: "Не могу найти/проверить", next: "need_electrician", type: "neutral" },
+                    { text: 'Да, установлен', next: 'low_water_step2', type: 'yes' },
+                    { text: 'Нет, не установлен', next: 'low_water_step3', type: 'no' },
+                    { 
+                        text: 'Перед установкой — уровень ниже кровли интервала', 
+                        next: 'low_water_step3', 
+                        type: 'extra',
+                        comment: 'Пакер не устанавливаем. Делаем опыт в интервале: Уровень воды-забой.'
+                    },
                 ]
             },
             
-            no_power: {
-                solution: {
-                    title: "РЕШЕНИЕ",
-                    emoji: "🔌",
-                    text: "Проблема с общим электропитанием. Насос не может работать без электричества.",
-                    steps: [
-                        "Проверьте общий вводной автомат в щитке",
-                        "Уточните у соседей, есть ли свет у них",
-                        "Если света нет везде — ждите восстановления или звоните в электросети",
-                        "Если свет есть только у вас — проверьте УЗО (устройство с кнопкой ТЕСТ)"
-                    ],
-                    contact: {
-                        label: "Не помогло? Звоните:",
-                        name: "Электрик Сергей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            automaton_off: {
-                category: "Диагностика",
-                emoji: "🔌",
-                question: "Автомат выбит. Попробуйте включить его. Что происходит?",
+            // Шаг 2: Уровень ниже пакера?
+            low_water_step2: {
+                situation: 'Низкий уровень подземных вод',
+                step: 2,
+                totalSteps: 3,
+                emoji: '📏',
+                question: 'Уровень ниже пакера?',
+                comment: 'Проверьте показания датчика уровня относительно положения пакера.',
                 answers: [
-                    { text: "Включился, насос заработал", next: "solved_temp", type: "yes" },
-                    { text: "Включился, но насос не работает", next: "check_wire", type: "neutral" },
-                    { text: "Выбивает сразу обратно", next: "short_circuit", type: "no" },
+                    { text: 'Да, уровень ниже', next: 'solution_packer_remove', type: 'yes' },
+                    { text: 'Нет, не ниже', next: 'low_water_step3', type: 'no' },
+                    { 
+                        text: 'Уровень на уровне посадочного кольца (4-5 м над пакером)', 
+                        next: 'low_water_step3', 
+                        type: 'extra',
+                        comment: 'Уровень высоко — переходим к проверке насоса.'
+                    },
                 ]
             },
             
-            short_circuit: {
-                solution: {
-                    title: "ОПАСНО!",
-                    emoji: "⚠️",
-                    text: "Короткое замыкание. Автомат выбивает мгновенно — это серьёзная проблема.",
-                    steps: [
-                        "НЕ пытайтесь включать автомат повторно много раз!",
-                        "Отключите все потребители от линии насоса",
-                        "Проверьте, нет ли запаха гари из щитка",
-                        "Осмотрите видимые части кабеля на предмет повреждений"
-                    ],
-                    contact: {
-                        label: "Срочно вызовите электрика:",
-                        name: "Электрик Сергей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            check_wire: {
-                category: "Шаг 3",
-                emoji: "🔍",
-                question: "Осмотрите кабель от щитка до скважины. Есть ли видимые повреждения?",
+            // Шаг 3: Насос
+            low_water_step3: {
+                situation: 'Низкий уровень подземных вод',
+                step: 3,
+                totalSteps: 3,
+                emoji: '💧',
+                question: 'Есть ли возможность спустить насос?',
+                comment: 'Нужно загрузить насос под статический уровень минимум на 3-4 метра. Проверьте марку насоса и его характеристику — поднимет ли он воду с глубины загрузки. По опыту нашего оборудования максимальная глубина спуска насоса 150-160 м (Grundfos 1-155).',
                 answers: [
-                    { text: "Провод целый", next: "check_pump_power", type: "yes" },
-                    { text: "Есть повреждения", next: "wire_damaged", type: "no" },
-                    { text: "Кабель под землёй, не видно", next: "need_electrician", type: "neutral" },
+                    { text: 'Да, можно спустить', next: 'solution_lower_pump', type: 'yes' },
+                    { text: 'Нет, нельзя спустить', next: 'solution_lower_sensor', type: 'no' },
                 ]
             },
             
-            wire_damaged: {
+            // === ФИНАЛЬНЫЕ РЕШЕНИЯ ===
+            
+            // Решение: Достаём пакер и проверяем датчик
+            solution_packer_remove: {
+                situation: 'Низкий уровень подземных вод',
                 solution: {
-                    title: "РЕШЕНИЕ",
-                    emoji: "🔧",
-                    text: "Повреждён кабель питания насоса.",
+                    emoji: '🔧',
+                    text: 'Достаём пакер и проверяем датчик.',
                     steps: [
-                        "Обесточьте линию (выключите автомат!)",
-                        "Зачистите повреждённый участок",
-                        "Соедините жилы через термоусадочную муфту",
-                        "Заизолируйте место соединения",
-                        "Включите автомат и проверьте работу"
+                        'Извлеките пакер из скважины.',
+                        'Проверьте датчик уровня в пакере.',
+                        'Если датчик показывает, что уровень БЫЛ — возвращаем пакер на место и делаем налив.',
+                        'Если датчик СУХОЙ — устанавливаем пакер ниже на 5 м (ориентируйтесь по состоянию керна).',
+                        'Повторяем процедуру до тех пор, пока не появится уровень.'
                     ],
-                    contact: {
-                        label: "Нет возможности починить самостоятельно?",
-                        name: "Электрик Сергей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
+                    contact: null
                 }
             },
             
-            need_electrician: {
+            // Решение: Спускаем насос, делаем прокачку
+            solution_lower_pump: {
+                situation: 'Низкий уровень подземных вод',
                 solution: {
-                    title: "ТРЕБУЕТСЯ СПЕЦИАЛИСТ",
-                    emoji: "👨‍🔧",
-                    text: "Для дальнейшей диагностики нужен электрик со спецоборудованием.",
+                    emoji: '💧',
+                    text: 'Спускаем насос и делаем прокачку.',
                     steps: [
-                        "Опишите электрику ситуацию, которую вы уже проверили",
-                        "Скажите, что проверили автомат и внешний осмотр кабеля",
-                        "Подготовьте доступ к щитку и скважине"
+                        'Загрузите насос под статический уровень минимум на 3-4 метра.',
+                        'Убедитесь, что насос способен поднять воду с данной глубины (макс. 150-160 м для Grundfos 1-155).',
+                        'Запустите насос и выполните прокачку.',
+                        'Контролируйте уровень воды в процессе откачки.'
                     ],
-                    contact: {
-                        label: "Ваш контакт:",
-                        name: "Электрик Сергей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
+                    contact: null
                 }
             },
             
-            check_pressure: {
-                category: "Шаг 4",
-                emoji: "📊",
-                question: "Смотрим на манометр. Какое давление в системе?",
-                answers: [
-                    { text: "Нормальное (1.5-3 атм)", next: "check_pump_sound", type: "yes" },
-                    { text: "Низкое или ноль", next: "low_pressure", type: "no" },
-                    { text: "Нет манометра", next: "check_pump_sound", type: "neutral" },
-                ]
-            },
-            
-            check_pump_power: {
-                category: "Шаг 4",
-                emoji: "🔌",
-                question: "Подходит ли питание к насосу? Слышите ли вы гул или вибрацию?",
-                answers: [
-                    { text: "Да, насос гудит", next: "pump_hums", type: "yes" },
-                    { text: "Нет, тишина", next: "no_pump_power", type: "no" },
-                ]
-            },
-            
-            no_pump_power: {
+            // Решение: Спускаем датчик и делаем налив
+            solution_lower_sensor: {
+                situation: 'Низкий уровень подземных вод',
                 solution: {
-                    title: "ДИАГНОСТИКА",
-                    emoji: "🔌",
-                    text: "Питание не доходит до насоса при включенном автомате.",
+                    emoji: '📊',
+                    text: 'Спускаем датчик под уровень воды и делаем налив.',
                     steps: [
-                        "Проверьте контакты в распределительной коробке у скважины",
-                        "Возможен обрыв кабеля под землёй",
-                        "Проверьте клеммы на самом насосе (если есть доступ)"
+                        'Спустите датчик под уровень воды (желательно на 15-20 метров).',
+                        'Если есть возможность — спустите ещё ниже.',
+                        'Выполните налив или экспресс-налив.',
+                        'Контролируйте восстановление уровня по датчику.'
                     ],
-                    contact: {
-                        label: "Скорее всего нужен электрик:",
-                        name: "Электрик Сергей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            pump_hums: {
-                category: "Шаг 5",
-                emoji: "🔊",
-                question: "Насос гудит, но не качает. Какой характер звука?",
-                answers: [
-                    { text: "Ровный гул, без перебоев", next: "pump_jammed", type: "neutral" },
-                    { text: "Прерывистый, странные звуки", next: "pump_broken", type: "no" },
-                ]
-            },
-            
-            pump_jammed: {
-                solution: {
-                    title: "ВЕРОЯТНАЯ ПРИЧИНА",
-                    emoji: "🪨",
-                    text: "Насос заклинен или забит песком/илом.",
-                    steps: [
-                        "Отключите насос от питания",
-                        "Попробуйте провернуть вал насоса вручную (если есть доступ)",
-                        "Промойте насос чистой водой",
-                        "Если не помогло — нужен демонтаж и чистка"
-                    ],
-                    contact: {
-                        label: "Нужна помощь с демонтажом?",
-                        name: "Буровик Алексей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            pump_broken: {
-                solution: {
-                    title: "ДИАГНОСТИКА",
-                    emoji: "💔",
-                    text: "Возможно механическое повреждение насоса или износ.",
-                    steps: [
-                        "Отключите питание",
-                        "Поднимите насос для осмотра",
-                        "Проверьте целостность корпуса и крыльчатки"
-                    ],
-                    contact: {
-                        label: "Требуется ремонт или замена:",
-                        name: "Буровик Алексей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            check_pump_sound: {
-                category: "Шаг 5",
-                emoji: "👂",
-                question: "Прислушайтесь у скважины. Слышно ли работу насоса?",
-                answers: [
-                    { text: "Да, слышно гудение", next: "check_valve", type: "yes" },
-                    { text: "Нет, тишина", next: "pump_dead", type: "no" },
-                ]
-            },
-            
-            pump_dead: {
-                solution: {
-                    title: "ПРОБЛЕМА",
-                    emoji: "💀",
-                    text: "Насос не подаёт признаков жизни.",
-                    steps: [
-                        "Проверьте напряжение мультиметром на клеммах насоса",
-                        "Возможно сгорел двигатель насоса",
-                        "Необходима замена насоса"
-                    ],
-                    contact: {
-                        label: "Свяжитесь для замены:",
-                        name: "Буровик Алексей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            check_valve: {
-                category: "Шаг 6",
-                emoji: "🚰",
-                question: "Откройте кран. Вода идёт хотя бы тонкой струйкой?",
-                answers: [
-                    { text: "Да, есть небольшая струя", next: "filter_clogged", type: "neutral" },
-                    { text: "Нет, совсем сухо", next: "pipe_blocked", type: "no" },
-                ]
-            },
-            
-            filter_clogged: {
-                solution: {
-                    title: "РЕШЕНИЕ",
-                    emoji: "🧹",
-                    text: "Скорее всего забит фильтр грубой очистки.",
-                    steps: [
-                        "Найдите фильтр (обычно перед гидроаккумулятором)",
-                        "Перекройте краны до и после фильтра",
-                        "Открутите колбу фильтра",
-                        "Промойте сетку под напором воды",
-                        "Соберите обратно и откройте краны"
-                    ]
-                }
-            },
-            
-            pipe_blocked: {
-                solution: {
-                    title: "ДИАГНОСТИКА",
-                    emoji: "🔧",
-                    text: "Возможен засор в трубе или обратном клапане.",
-                    steps: [
-                        "Проверьте обратный клапан (мог заклинить)",
-                        "Осмотрите трубу на предмет заломов",
-                        "Если скважина старая — возможен засор в обсадной трубе"
-                    ],
-                    contact: {
-                        label: "Нужна прочистка? Звоните:",
-                        name: "Буровик Алексей",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            low_pressure: {
-                category: "Шаг 5",
-                emoji: "📉",
-                question: "Давление низкое. Проверьте реле давления. Контакты замкнуты?",
-                answers: [
-                    { text: "Да, реле щёлкает", next: "check_hydro", type: "yes" },
-                    { text: "Нет, реле молчит", next: "relay_broken", type: "no" },
-                ]
-            },
-            
-            relay_broken: {
-                solution: {
-                    title: "РЕШЕНИЕ",
-                    emoji: "🔧",
-                    text: "Неисправно реле давления.",
-                    steps: [
-                        "Отключите питание",
-                        "Снимите крышку реле",
-                        "Проверьте, не подгорели ли контакты",
-                        "При необходимости замените реле (стоит недорого)"
-                    ]
-                }
-            },
-            
-            check_hydro: {
-                category: "Шаг 6",
-                emoji: "🫙",
-                question: "Проверьте гидроаккумулятор. Нажмите на ниппель — выходит воздух или вода?",
-                answers: [
-                    { text: "Выходит воздух", next: "check_membrane", type: "yes" },
-                    { text: "Выходит вода", next: "membrane_broken", type: "no" },
-                ]
-            },
-            
-            membrane_broken: {
-                solution: {
-                    title: "ПРОБЛЕМА",
-                    emoji: "💧",
-                    text: "Порвана мембрана гидроаккумулятора.",
-                    steps: [
-                        "Отключите насос и слейте воду из системы",
-                        "Открутите фланец гидроаккумулятора",
-                        "Замените мембрану на новую",
-                        "Накачайте воздух до 1.5 атм"
-                    ],
-                    contact: {
-                        label: "Нужна помощь?",
-                        name: "Сантехник Михаил",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            check_membrane: {
-                solution: {
-                    title: "ДИАГНОСТИКА",
-                    emoji: "✅",
-                    text: "Мембрана цела. Возможно проблема глубже.",
-                    steps: [
-                        "Проверьте настройки реле давления (нижний/верхний порог)",
-                        "Проверьте, не забита ли труба от насоса до дома",
-                        "Уточните, не падал ли уровень воды в скважине"
-                    ],
-                    contact: {
-                        label: "Остались вопросы? Звоните:",
-                        name: "Техподдержка",
-                        phone: "+7 (XXX) XXX-XX-XX"
-                    }
-                }
-            },
-            
-            solved_temp: {
-                solution: {
-                    title: "ГОТОВО! ✅",
-                    emoji: "🎉",
-                    text: "Проблема решена! Это было временное отключение.",
-                    steps: [
-                        "Автомат мог выбить из-за скачка напряжения",
-                        "Понаблюдайте за работой в ближайшие часы",
-                        "Если проблема повторится — вернитесь к диагностике"
-                    ]
+                    contact: null
                 }
             }
         };
@@ -693,28 +423,72 @@
         // ЛОГИКА ПРИЛОЖЕНИЯ
         // ============================================
         
-        let history = ['start'];
-        let currentStep = 'start';
+        let history = ['menu'];
+        
+        function getStepsList(nodeId) {
+            // Собирает цепочку шагов для отображения в индикаторе
+            if (nodeId === 'menu') return [];
+            const node = tree[nodeId];
+            if (!node || !node.situation) return [];
+            
+            let steps = [];
+            // Ищем все шаги этой ситуации
+            Object.entries(tree).forEach(([key, value]) => {
+                if (value.situation === node.situation && value.step) {
+                    steps.push({ id: key, step: value.step, totalSteps: value.totalSteps });
+                }
+            });
+            steps.sort((a, b) => a.step - b.step);
+            return steps;
+        }
         
         function renderStep(stepId) {
             const node = tree[stepId];
             const card = document.getElementById('mainCard');
-            const progressDiv = document.getElementById('progress');
+            const indicator = document.getElementById('stepsIndicator');
             
-            // Обновляем прогресс
-            const depth = history.length;
-            let progressHTML = '';
-            for (let i = 0; i < 6; i++) {
-                if (i < depth - 1) progressHTML += '<div class="step-dot done"></div>';
-                else if (i === depth - 1) progressHTML += '<div class="step-dot active"></div>';
-                else progressHTML += '<div class="step-dot"></div>';
-                if (i < 5) progressHTML += '<div class="step-line"></div>';
+            // Индикатор шагов
+            if (node.type === 'menu') {
+                indicator.innerHTML = '';
+            } else if (node.step) {
+                const totalSteps = node.totalSteps || 3;
+                let html = '';
+                for (let i = 1; i <= totalSteps; i++) {
+                    if (i < node.step) html += `<span class="step-badge done">Шаг ${i}</span>`;
+                    else if (i === node.step) html += `<span class="step-badge active">Шаг ${i}</span>`;
+                    else html += `<span class="step-badge">Шаг ${i}</span>`;
+                    if (i < totalSteps) html += '<span class="step-arrow">→</span>';
+                }
+                indicator.innerHTML = html;
+            } else if (node.solution) {
+                indicator.innerHTML = '<span class="step-badge done">Решение</span>';
             }
-            progressDiv.innerHTML = progressHTML;
             
-            // Рендерим карточку
+            // Меню
+            if (node.type === 'menu') {
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="text-align:center;font-size:48px;margin-bottom:12px;">${node.emoji}</div>
+                    <div class="question" style="text-align:center;margin-bottom:20px;">${node.title}</div>
+                    <div class="answers">
+                        ${node.items.map(item => `
+                            <button class="btn btn-full btn-yes" onclick="goTo('${item.next}')">
+                                ${item.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                return;
+            }
+            
+            // Ситуация (шапка)
+            let situationHTML = '';
+            if (node.situation) {
+                situationHTML = `<div class="situation-badge">📌 ${node.situation}</div>`;
+            }
+            
+            // Решение
             if (node.solution) {
-                // Финальный экран с решением
                 let contactHTML = '';
                 if (node.solution.contact) {
                     contactHTML = `
@@ -728,8 +502,9 @@
                 
                 card.className = 'card solution-card';
                 card.innerHTML = `
-                    <div class="solution-title">${node.solution.title}</div>
-                    <div class="question-emoji">${node.solution.emoji}</div>
+                    ${situationHTML}
+                    <div class="solution-label">Решение</div>
+                    <div class="solution-emoji">${node.solution.emoji}</div>
                     <div class="solution-text">${node.solution.text}</div>
                     <div class="solution-steps">
                         <ol>
@@ -737,50 +512,56 @@
                         </ol>
                     </div>
                     ${contactHTML}
-                    <button class="btn btn-full btn-back" onclick="restart()">
-                        🔄 Начать сначала
-                    </button>
+                    <button class="btn btn-full btn-back" onclick="goBack()">⬅ Назад</button>
+                    <button class="btn btn-full btn-back" onclick="goToMenu()" style="margin-top:4px;">📋 К списку ситуаций</button>
                 `;
-            } else {
-                // Экран вопроса
-                card.className = 'card';
-                const answersHTML = node.answers.map((a, i) => {
-                    let btnClass = 'btn-action';
-                    if (a.type === 'yes') btnClass = 'btn-yes';
-                    if (a.type === 'no') btnClass = 'btn-no';
-                    if (a.type === 'neutral') btnClass = 'btn-neutral';
-                    
-                    let emoji = '';
-                    if (a.type === 'yes') emoji = '✅';
-                    if (a.type === 'no') emoji = '❌';
-                    if (a.type === 'neutral') emoji = '🤔';
-                    
-                    return `
-                        <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
-                            ${emoji} ${a.text}
-                        </button>
-                    `;
-                }).join('');
-                
-                card.innerHTML = `
-                    <div class="category-badge">${node.category}</div>
-                    <div class="question-emoji">${node.emoji}</div>
-                    <div class="question">${node.question}</div>
-                    <div class="answers">
-                        ${answersHTML}
-                        ${history.length > 1 ? `
-                            <button class="btn btn-full btn-back" onclick="goBack()">
-                                ⬅ Назад
-                            </button>
-                        ` : ''}
-                        <button class="btn btn-full btn-back" onclick="restart()" style="margin-top: 4px;">
-                            🔄 Начать заново
-                        </button>
-                    </div>
-                `;
+                return;
             }
             
-            // Прокрутка к карточке на мобильных
+            // Вопрос
+            const answersHTML = node.answers.map(a => {
+                let btnClass = 'btn-yes';
+                let emoji = '✅';
+                if (a.type === 'no') { btnClass = 'btn-no'; emoji = '❌'; }
+                if (a.type === 'extra') { btnClass = 'btn-extra'; emoji = '⚠️'; }
+                
+                let commentHTML = '';
+                if (a.comment) {
+                    commentHTML = `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;font-weight:400;">${a.comment}</div>`;
+                }
+                
+                return `
+                    <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
+                        <span>${emoji}</span>
+                        <span style="flex:1;text-align:left;">
+                            ${a.text}
+                            ${commentHTML}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+            
+            let commentHTML = '';
+            if (node.comment) {
+                commentHTML = `<div class="question-comment">💡 ${node.comment}</div>`;
+            }
+            
+            card.className = 'card';
+            card.innerHTML = `
+                ${situationHTML}
+                <div class="step-number">Шаг ${node.step} из ${node.totalSteps || 3}</div>
+                <div class="question-emoji">${node.emoji}</div>
+                <div class="question">${node.question}</div>
+                ${commentHTML}
+                <div class="answers">
+                    ${answersHTML}
+                    ${history.length > 1 ? `
+                        <button class="btn btn-full btn-back" onclick="goBack()">⬅ Назад</button>
+                    ` : ''}
+                    <button class="btn btn-full btn-back" onclick="goToMenu()">📋 К списку ситуаций</button>
+                </div>
+            `;
+            
             setTimeout(() => {
                 card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
@@ -788,27 +569,23 @@
         
         function goTo(stepId) {
             history.push(stepId);
-            currentStep = stepId;
             renderStep(stepId);
         }
         
         function goBack() {
             if (history.length > 1) {
                 history.pop();
-                currentStep = history[history.length - 1];
-                renderStep(currentStep);
+                renderStep(history[history.length - 1]);
             }
         }
         
-        function restart() {
-            history = ['start'];
-            currentStep = 'start';
-            renderStep('start');
+        function goToMenu() {
+            history = ['menu'];
+            renderStep('menu');
         }
         
-        // Запуск
         document.addEventListener('DOMContentLoaded', () => {
-            renderStep('start');
+            renderStep('menu');
         });
     </script>
 </body>
