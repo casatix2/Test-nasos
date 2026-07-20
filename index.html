@@ -15,18 +15,13 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
-                const CACHE = 'drilling-v5';
+                const CACHE = 'drilling-cache';
                 
                 self.addEventListener('install', e => {
                     self.skipWaiting();
                 });
                 
                 self.addEventListener('activate', e => {
-                    e.waitUntil(
-                        caches.keys().then(keys => 
-                            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-                        )
-                    );
                     self.clients.claim();
                 });
                 
@@ -43,8 +38,12 @@
                 });
                 
                 self.addEventListener('message', e => {
-                    if (e.data === 'skipWaiting') {
-                        self.skipWaiting();
+                    if (e.data === 'clearCache') {
+                        e.waitUntil(
+                            caches.delete(CACHE).then(() => {
+                                self.skipWaiting();
+                            })
+                        );
                     }
                 });
             `));
@@ -101,7 +100,6 @@
         .title { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
         .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         
-        /* Индикатор шагов */
         .steps-indicator {
             display: flex;
             align-items: center;
@@ -240,7 +238,6 @@
         
         .btn-full { width: 100%; }
         
-        /* Решение */
         .solution-card {
             background: linear-gradient(135deg, #16213e 0%, #1a2744 100%);
             border: 1px solid var(--success);
@@ -298,7 +295,6 @@
         .contact-name { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
         .contact-phone { font-size: 20px; font-weight: 700; color: #fff; }
         
-        /* Кнопка обновления */
         .update-bar {
             position: fixed;
             bottom: 20px;
@@ -390,7 +386,6 @@
         <div class="card" id="mainCard"></div>
     </div>
     
-    <!-- Кнопка обновления -->
     <div class="update-bar" id="updateBar">
         <button class="btn-update" onclick="updateApp()">
             Доступно обновление
@@ -404,7 +399,6 @@
         // ============================================
         const tree = {
             
-            // Главное меню
             menu: {
                 type: 'menu',
                 title: 'Выберите ситуацию',
@@ -418,7 +412,6 @@
             // НИЗКИЙ УРОВЕНЬ ПОДЗЕМНЫХ ВОД
             // ============================================
             
-            // Шаг 1: Установлен ли пакер?
             low_water_step1: {
                 situation: 'Низкий уровень подземных вод',
                 step: 1,
@@ -438,7 +431,6 @@
                 ]
             },
             
-            // Шаг 2: Уровень ниже пакера?
             low_water_step2: {
                 situation: 'Низкий уровень подземных вод',
                 step: 2,
@@ -457,7 +449,6 @@
                 ]
             },
             
-            // Шаг 3: Есть ли возможность спустить насос?
             low_water_step3: {
                 situation: 'Низкий уровень подземных вод',
                 step: 3,
@@ -475,7 +466,6 @@
             // ФИНАЛЬНЫЕ РЕШЕНИЯ
             // ============================================
             
-            // Решение: Достаём пакер, проверяем датчик
             solution_packer_check: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
@@ -497,7 +487,6 @@
                 }
             },
             
-            // Решение: Спускаем насос, делаем прокачку
             solution_lower_pump: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
@@ -513,7 +502,6 @@
                 }
             },
             
-            // Решение: Спускаем датчик и делаем налив
             solution_lower_sensor: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
@@ -541,7 +529,6 @@
             const card = document.getElementById('mainCard');
             const indicator = document.getElementById('stepsIndicator');
             
-            // Индикатор шагов
             if (node.type === 'menu') {
                 indicator.innerHTML = '';
             } else if (node.step) {
@@ -558,7 +545,6 @@
                 indicator.innerHTML = '<span class="step-badge done">Решение</span>';
             }
             
-            // Меню
             if (node.type === 'menu') {
                 card.className = 'card';
                 card.innerHTML = `
@@ -575,13 +561,11 @@
                 return;
             }
             
-            // Ситуация (шапка)
             let situationHTML = '';
             if (node.situation) {
                 situationHTML = `<div class="situation-badge">${node.situation}</div>`;
             }
             
-            // Решение
             if (node.solution) {
                 let contactHTML = '';
                 if (node.solution.contact) {
@@ -613,7 +597,6 @@
                 return;
             }
             
-            // Вопрос
             const answersHTML = node.answers.map(a => {
                 let btnClass = 'btn-yes';
                 if (a.type === 'no') { btnClass = 'btn-no'; }
@@ -624,12 +607,10 @@
                     commentHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400;">${a.comment}</div>`;
                 }
                 
-                let displayText = a.text;
-                
                 return `
                     <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
                         <span style="flex:1;text-align:left;">
-                            ${displayText}
+                            ${a.text}
                             ${commentHTML}
                         </span>
                     </button>
@@ -680,26 +661,17 @@
         }
         
         // ============================================
-        // ОБНОВЛЕНИЕ ПРИЛОЖЕНИЯ
+        // АВТООБНОВЛЕНИЕ
         // ============================================
-        
-        let newVersionAvailable = false;
         
         async function checkForUpdate() {
             try {
                 const response = await fetch(window.location.href, { cache: 'no-store' });
                 const newText = await response.text();
+                const currentText = document.documentElement.outerHTML;
                 
-                const versionMatch = newText.match(/CACHE = '([^']+)'/);
-                
-                if (versionMatch) {
-                    const newVersion = versionMatch[1];
-                    const currentVersion = 'drilling-v5';
-                    
-                    if (newVersion !== currentVersion) {
-                        newVersionAvailable = true;
-                        document.getElementById('updateBar').classList.add('show');
-                    }
+                if (newText.length !== currentText.length) {
+                    document.getElementById('updateBar').classList.add('show');
                 }
             } catch (e) {
                 // Офлайн — не проверяем
@@ -719,18 +691,18 @@
                 await Promise.all(cacheNames.map(name => caches.delete(name)));
                 
                 if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage('skipWaiting');
+                    navigator.serviceWorker.controller.postMessage('clearCache');
                 }
                 
                 setTimeout(() => {
-                    statusEl.textContent = 'Готово! Перезагрузка...';
+                    statusEl.textContent = 'Готово!';
                     setTimeout(() => {
                         window.location.reload(true);
                     }, 500);
-                }, 500);
+                }, 800);
                 
             } catch (e) {
-                statusEl.textContent = 'Ошибка. Попробуйте позже.';
+                statusEl.textContent = 'Ошибка';
                 setTimeout(() => statusEl.classList.remove('show'), 2000);
             }
         }
