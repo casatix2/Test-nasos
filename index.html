@@ -660,18 +660,32 @@
             renderStep('menu');
         }
         
-        // ============================================
+               // ============================================
         // АВТООБНОВЛЕНИЕ
         // ============================================
         
+        // ВЕРСИЯ ПРИЛОЖЕНИЯ — меняйте это число при каждом обновлении
+        const APP_VERSION = 1;
+        
+        let updateChecked = false;
+        
         async function checkForUpdate() {
+            if (updateChecked) return; // проверяем только один раз
+            updateChecked = true;
+            
             try {
                 const response = await fetch(window.location.href, { cache: 'no-store' });
                 const newText = await response.text();
-                const currentText = document.documentElement.outerHTML;
                 
-                if (newText.length !== currentText.length) {
-                    document.getElementById('updateBar').classList.add('show');
+                // Ищем версию в новом файле
+                const match = newText.match(/const APP_VERSION = (\d+)/);
+                
+                if (match) {
+                    const serverVersion = parseInt(match[1]);
+                    
+                    if (serverVersion > APP_VERSION) {
+                        document.getElementById('updateBar').classList.add('show');
+                    }
                 }
             } catch (e) {
                 // Офлайн — не проверяем
@@ -714,6 +728,3 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderStep('menu');
         });
-    </script>
-</body>
-</html>
