@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Помощник по бурению</title>
+    <title>ННТС Хелпер</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Бурение">
+    <meta name="apple-mobile-web-app-title" content="ННТС">
     <meta name="theme-color" content="#1a1a2e">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>">
     
@@ -15,7 +15,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
-                const CACHE = 'drilling-cache';
+                const CACHE = 'nnts-cache';
                 
                 self.addEventListener('install', e => {
                     self.skipWaiting();
@@ -66,7 +66,10 @@
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        html, body { height: 100%; overflow-x: hidden; }
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -75,10 +78,11 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             -webkit-user-select: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            height: 100%;
             overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
+            position: relative;
         }
         
         .container {
@@ -86,9 +90,7 @@
             max-width: 500px;
             margin: 0 auto;
             padding: 16px;
-            padding-bottom: 40px;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            padding-bottom: 100px;
         }
         
         .header {
@@ -365,7 +367,7 @@
         
         @supports (padding: max(0px)) {
             .container {
-                padding-bottom: max(40px, env(safe-area-inset-bottom));
+                padding-bottom: max(100px, env(safe-area-inset-bottom) + 60px);
             }
             
             .update-bar {
@@ -378,7 +380,7 @@
     <div class="container">
         <div class="header">
             <div class="logo">⛏️</div>
-            <div class="title">Помощник буровика</div>
+            <div class="title">ННТС Хелпер</div>
             <div class="subtitle">Диагностика и решения</div>
         </div>
         
@@ -660,24 +662,22 @@
             renderStep('menu');
         }
         
-               // ============================================
+        // ============================================
         // АВТООБНОВЛЕНИЕ
         // ============================================
         
-        // ВЕРСИЯ ПРИЛОЖЕНИЯ — меняйте это число при каждом обновлении
         const APP_VERSION = 1;
         
         let updateChecked = false;
         
         async function checkForUpdate() {
-            if (updateChecked) return; // проверяем только один раз
+            if (updateChecked) return;
             updateChecked = true;
             
             try {
                 const response = await fetch(window.location.href, { cache: 'no-store' });
                 const newText = await response.text();
                 
-                // Ищем версию в новом файле
                 const match = newText.match(/const APP_VERSION = (\d+)/);
                 
                 if (match) {
@@ -688,7 +688,7 @@
                     }
                 }
             } catch (e) {
-                // Офлайн — не проверяем
+                // Офлайн
             }
         }
         
@@ -728,3 +728,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderStep('menu');
         });
+    </script>
+</body>
+</html>
