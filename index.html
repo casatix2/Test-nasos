@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ННТС Хелпер</title>
+    <title>Помощник по бурению</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,13 +15,37 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
-                const CACHE = 'drilling-v2';
+                const CACHE = 'drilling-v5';
+                
                 self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['/'])));
                     self.skipWaiting();
                 });
+                
+                self.addEventListener('activate', e => {
+                    e.waitUntil(
+                        caches.keys().then(keys => 
+                            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+                        )
+                    );
+                    self.clients.claim();
+                });
+                
                 self.addEventListener('fetch', e => {
-                    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+                    e.respondWith(
+                        fetch(e.request)
+                            .then(response => {
+                                const clone = response.clone();
+                                caches.open(CACHE).then(cache => cache.put(e.request, clone));
+                                return response;
+                            })
+                            .catch(() => caches.match(e.request))
+                    );
+                });
+                
+                self.addEventListener('message', e => {
+                    if (e.data === 'skipWaiting') {
+                        self.skipWaiting();
+                    }
                 });
             `));
         });
@@ -274,14 +298,82 @@
         .contact-name { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
         .contact-phone { font-size: 20px; font-weight: 700; color: #fff; }
         
+        /* Кнопка обновления */
+        .update-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: none;
+        }
+        
+        .update-bar.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .btn-update {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(233, 68, 96, 0.4);
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        
+        .btn-update:active {
+            transform: scale(0.95);
+        }
+        
+        .update-status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .update-status.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
         @supports (padding: max(0px)) {
             .container {
                 padding-bottom: max(40px, env(safe-area-inset-bottom));
+            }
+            
+            .update-bar {
+                bottom: max(20px, env(safe-area-inset-bottom));
             }
         }
     </style>
@@ -297,6 +389,14 @@
         <div class="steps-indicator" id="stepsIndicator"></div>
         <div class="card" id="mainCard"></div>
     </div>
+    
+    <!-- Кнопка обновления -->
+    <div class="update-bar" id="updateBar">
+        <button class="btn-update" onclick="updateApp()">
+            Доступно обновление
+        </button>
+    </div>
+    <div class="update-status" id="updateStatus"></div>
     
     <script>
         // ============================================
@@ -516,16 +616,14 @@
             // Вопрос
             const answersHTML = node.answers.map(a => {
                 let btnClass = 'btn-yes';
-                let label = 'Да';
-                if (a.type === 'no') { btnClass = 'btn-no'; label = 'Нет'; }
-                if (a.type === 'extra') { btnClass = 'btn-extra'; label = 'Доп.'; }
+                if (a.type === 'no') { btnClass = 'btn-no'; }
+                if (a.type === 'extra') { btnClass = 'btn-extra'; }
                 
                 let commentHTML = '';
                 if (a.comment) {
                     commentHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400;">${a.comment}</div>`;
                 }
                 
-                // Для доп. ответов показываем полный текст вместо "Да"/"Нет"
                 let displayText = a.text;
                 
                 return `
@@ -580,6 +678,66 @@
             history = ['menu'];
             renderStep('menu');
         }
+        
+        // ============================================
+        // ОБНОВЛЕНИЕ ПРИЛОЖЕНИЯ
+        // ============================================
+        
+        let newVersionAvailable = false;
+        
+        async function checkForUpdate() {
+            try {
+                const response = await fetch(window.location.href, { cache: 'no-store' });
+                const newText = await response.text();
+                
+                const versionMatch = newText.match(/CACHE = '([^']+)'/);
+                
+                if (versionMatch) {
+                    const newVersion = versionMatch[1];
+                    const currentVersion = 'drilling-v5';
+                    
+                    if (newVersion !== currentVersion) {
+                        newVersionAvailable = true;
+                        document.getElementById('updateBar').classList.add('show');
+                    }
+                }
+            } catch (e) {
+                // Офлайн — не проверяем
+            }
+        }
+        
+        async function updateApp() {
+            const statusEl = document.getElementById('updateStatus');
+            const updateBar = document.getElementById('updateBar');
+            
+            updateBar.classList.remove('show');
+            statusEl.textContent = 'Обновление...';
+            statusEl.classList.add('show');
+            
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage('skipWaiting');
+                }
+                
+                setTimeout(() => {
+                    statusEl.textContent = 'Готово! Перезагрузка...';
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 500);
+                }, 500);
+                
+            } catch (e) {
+                statusEl.textContent = 'Ошибка. Попробуйте позже.';
+                setTimeout(() => statusEl.classList.remove('show'), 2000);
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            setTimeout(checkForUpdate, 2000);
+        });
         
         document.addEventListener('DOMContentLoaded', () => {
             renderStep('menu');
