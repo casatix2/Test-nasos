@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Помощник по ремонту</title>
+    
+    <!-- PWA мета-теги -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ремонт">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    
+    <!-- Service Worker -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
+                const CACHE = 'repair-v2';
+                self.addEventListener('install', e => {
+                    e.waitUntil(
+                        caches.open(CACHE).then(cache => 
+                            cache.addAll(['/'])
+                        )
+                    );
+                    self.skipWaiting();
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(
+                        caches.match(e.request).then(r => r || fetch(e.request))
+                    );
+                });
+            `));
+        });
+    }
+    </script>
+    
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --primary: #0f3460;
+            --accent: #e94560;
+            --text: #eee;
+            --text-secondary: #a0a0b0;
+            --success: #2ecc71;
+            --warning: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 40px;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+        
+        .logo {
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
+        
+        .step-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
+        .step-dot.done {
+            background: var(--success);
+        }
+        
+        .step-line {
+            flex: 1;
+            height: 1px;
+            background: var(--primary);
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 30px 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--text-secondary);
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .question {
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 30px;
+        }
+        
+        .question-emoji {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 24px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            color: #fff;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+        }
+        
+        .btn-yes {
+            background: var(--success);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-no {
+            background: var(--accent);
+            box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3);
+        }
+        
+        .btn-action {
+            background: var(--primary);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .btn-neutral {
+            background: var(--warning);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-back {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .solution-card {
+            background: linear-gradient(135deg, #16213e 0%, #1a2744 100%);
+            border: 1px solid var(--success);
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.1);
+        }
+        
+        .solution-title {
+            font-size: 16px;
+            color: var(--success);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        
+        .solution-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .solution-steps {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .solution-steps ol {
+            padding-left: 20px;
+        }
+        
+        .solution-steps li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        
+        .contact-info {
+            background: rgba(233, 68, 96, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .contact-label {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .contact-phone {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 4px 0;
+        }
+        
+        .contact-name {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @supports (padding: max(0px)) {
+            .container {
+                padding-bottom: max(40px, env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔧</div>
+            <div class="title">Мастер-помощник</div>
+            <div class="subtitle">Диагностика оборудования</div>
+        </div>
+        
+        <div class="progress" id="progress"></div>
+        
+        <div class="card" id="mainCard"></div>
+    </div>
+    
+    <script>
+        // ============================================
+        // ДЕРЕВО РЕШЕНИЙ
+        // ============================================
+        const tree = {
+            start: {
+                category: "Насос в скважине",
+                emoji: "💧",
+                question: "Не работает насос. Есть ли электричество в доме?",
+                answers: [
+                    { text: "Да, свет есть", next: "check_automaton", type: "yes" },
+                    { text: "Нет, света нет", next: "no_power", type: "no" },
+                ]
+            },
+            
+            check_automaton: {
+                category: "Шаг 2",
+                emoji: "⚡",
+                question: "Проверьте автомат насоса в щитке. Он включен?",
+                answers: [
+                    { text: "Да, автомат включен", next: "check_pressure", type: "yes" },
+                    { text: "Нет, автомат выбит", next: "automaton_off", type: "no" },
+                    { text: "Не могу найти/проверить", next: "need_electrician", type: "neutral" },
+                ]
+            },
+            
+            no_power: {
+                solution: {
+                    title: "РЕШЕНИЕ",
+                    emoji: "🔌",
+                    text: "Проблема с общим электропитанием. Насос не может работать без электричества.",
+                    steps: [
+                        "Проверьте общий вводной автомат в щитке",
+                        "Уточните у соседей, есть ли свет у них",
+                        "Если света нет везде — ждите восстановления или звоните в электросети",
+                        "Если свет есть только у вас — проверьте УЗО (устройство с кнопкой ТЕСТ)"
+                    ],
+                    contact: {
+                        label: "Не помогло? Звоните:",
+                        name: "Электрик Сергей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            automaton_off: {
+                category: "Диагностика",
+                emoji: "🔌",
+                question: "Автомат выбит. Попробуйте включить его. Что происходит?",
+                answers: [
+                    { text: "Включился, насос заработал", next: "solved_temp", type: "yes" },
+                    { text: "Включился, но насос не работает", next: "check_wire", type: "neutral" },
+                    { text: "Выбивает сразу обратно", next: "short_circuit", type: "no" },
+                ]
+            },
+            
+            short_circuit: {
+                solution: {
+                    title: "ОПАСНО!",
+                    emoji: "⚠️",
+                    text: "Короткое замыкание. Автомат выбивает мгновенно — это серьёзная проблема.",
+                    steps: [
+                        "НЕ пытайтесь включать автомат повторно много раз!",
+                        "Отключите все потребители от линии насоса",
+                        "Проверьте, нет ли запаха гари из щитка",
+                        "Осмотрите видимые части кабеля на предмет повреждений"
+                    ],
+                    contact: {
+                        label: "Срочно вызовите электрика:",
+                        name: "Электрик Сергей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            check_wire: {
+                category: "Шаг 3",
+                emoji: "🔍",
+                question: "Осмотрите кабель от щитка до скважины. Есть ли видимые повреждения?",
+                answers: [
+                    { text: "Провод целый", next: "check_pump_power", type: "yes" },
+                    { text: "Есть повреждения", next: "wire_damaged", type: "no" },
+                    { text: "Кабель под землёй, не видно", next: "need_electrician", type: "neutral" },
+                ]
+            },
+            
+            wire_damaged: {
+                solution: {
+                    title: "РЕШЕНИЕ",
+                    emoji: "🔧",
+                    text: "Повреждён кабель питания насоса.",
+                    steps: [
+                        "Обесточьте линию (выключите автомат!)",
+                        "Зачистите повреждённый участок",
+                        "Соедините жилы через термоусадочную муфту",
+                        "Заизолируйте место соединения",
+                        "Включите автомат и проверьте работу"
+                    ],
+                    contact: {
+                        label: "Нет возможности починить самостоятельно?",
+                        name: "Электрик Сергей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            need_electrician: {
+                solution: {
+                    title: "ТРЕБУЕТСЯ СПЕЦИАЛИСТ",
+                    emoji: "👨‍🔧",
+                    text: "Для дальнейшей диагностики нужен электрик со спецоборудованием.",
+                    steps: [
+                        "Опишите электрику ситуацию, которую вы уже проверили",
+                        "Скажите, что проверили автомат и внешний осмотр кабеля",
+                        "Подготовьте доступ к щитку и скважине"
+                    ],
+                    contact: {
+                        label: "Ваш контакт:",
+                        name: "Электрик Сергей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            check_pressure: {
+                category: "Шаг 4",
+                emoji: "📊",
+                question: "Смотрим на манометр. Какое давление в системе?",
+                answers: [
+                    { text: "Нормальное (1.5-3 атм)", next: "check_pump_sound", type: "yes" },
+                    { text: "Низкое или ноль", next: "low_pressure", type: "no" },
+                    { text: "Нет манометра", next: "check_pump_sound", type: "neutral" },
+                ]
+            },
+            
+            check_pump_power: {
+                category: "Шаг 4",
+                emoji: "🔌",
+                question: "Подходит ли питание к насосу? Слышите ли вы гул или вибрацию?",
+                answers: [
+                    { text: "Да, насос гудит", next: "pump_hums", type: "yes" },
+                    { text: "Нет, тишина", next: "no_pump_power", type: "no" },
+                ]
+            },
+            
+            no_pump_power: {
+                solution: {
+                    title: "ДИАГНОСТИКА",
+                    emoji: "🔌",
+                    text: "Питание не доходит до насоса при включенном автомате.",
+                    steps: [
+                        "Проверьте контакты в распределительной коробке у скважины",
+                        "Возможен обрыв кабеля под землёй",
+                        "Проверьте клеммы на самом насосе (если есть доступ)"
+                    ],
+                    contact: {
+                        label: "Скорее всего нужен электрик:",
+                        name: "Электрик Сергей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            pump_hums: {
+                category: "Шаг 5",
+                emoji: "🔊",
+                question: "Насос гудит, но не качает. Какой характер звука?",
+                answers: [
+                    { text: "Ровный гул, без перебоев", next: "pump_jammed", type: "neutral" },
+                    { text: "Прерывистый, странные звуки", next: "pump_broken", type: "no" },
+                ]
+            },
+            
+            pump_jammed: {
+                solution: {
+                    title: "ВЕРОЯТНАЯ ПРИЧИНА",
+                    emoji: "🪨",
+                    text: "Насос заклинен или забит песком/илом.",
+                    steps: [
+                        "Отключите насос от питания",
+                        "Попробуйте провернуть вал насоса вручную (если есть доступ)",
+                        "Промойте насос чистой водой",
+                        "Если не помогло — нужен демонтаж и чистка"
+                    ],
+                    contact: {
+                        label: "Нужна помощь с демонтажом?",
+                        name: "Буровик Алексей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            pump_broken: {
+                solution: {
+                    title: "ДИАГНОСТИКА",
+                    emoji: "💔",
+                    text: "Возможно механическое повреждение насоса или износ.",
+                    steps: [
+                        "Отключите питание",
+                        "Поднимите насос для осмотра",
+                        "Проверьте целостность корпуса и крыльчатки"
+                    ],
+                    contact: {
+                        label: "Требуется ремонт или замена:",
+                        name: "Буровик Алексей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            check_pump_sound: {
+                category: "Шаг 5",
+                emoji: "👂",
+                question: "Прислушайтесь у скважины. Слышно ли работу насоса?",
+                answers: [
+                    { text: "Да, слышно гудение", next: "check_valve", type: "yes" },
+                    { text: "Нет, тишина", next: "pump_dead", type: "no" },
+                ]
+            },
+            
+            pump_dead: {
+                solution: {
+                    title: "ПРОБЛЕМА",
+                    emoji: "💀",
+                    text: "Насос не подаёт признаков жизни.",
+                    steps: [
+                        "Проверьте напряжение мультиметром на клеммах насоса",
+                        "Возможно сгорел двигатель насоса",
+                        "Необходима замена насоса"
+                    ],
+                    contact: {
+                        label: "Свяжитесь для замены:",
+                        name: "Буровик Алексей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            check_valve: {
+                category: "Шаг 6",
+                emoji: "🚰",
+                question: "Откройте кран. Вода идёт хотя бы тонкой струйкой?",
+                answers: [
+                    { text: "Да, есть небольшая струя", next: "filter_clogged", type: "neutral" },
+                    { text: "Нет, совсем сухо", next: "pipe_blocked", type: "no" },
+                ]
+            },
+            
+            filter_clogged: {
+                solution: {
+                    title: "РЕШЕНИЕ",
+                    emoji: "🧹",
+                    text: "Скорее всего забит фильтр грубой очистки.",
+                    steps: [
+                        "Найдите фильтр (обычно перед гидроаккумулятором)",
+                        "Перекройте краны до и после фильтра",
+                        "Открутите колбу фильтра",
+                        "Промойте сетку под напором воды",
+                        "Соберите обратно и откройте краны"
+                    ]
+                }
+            },
+            
+            pipe_blocked: {
+                solution: {
+                    title: "ДИАГНОСТИКА",
+                    emoji: "🔧",
+                    text: "Возможен засор в трубе или обратном клапане.",
+                    steps: [
+                        "Проверьте обратный клапан (мог заклинить)",
+                        "Осмотрите трубу на предмет заломов",
+                        "Если скважина старая — возможен засор в обсадной трубе"
+                    ],
+                    contact: {
+                        label: "Нужна прочистка? Звоните:",
+                        name: "Буровик Алексей",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            low_pressure: {
+                category: "Шаг 5",
+                emoji: "📉",
+                question: "Давление низкое. Проверьте реле давления. Контакты замкнуты?",
+                answers: [
+                    { text: "Да, реле щёлкает", next: "check_hydro", type: "yes" },
+                    { text: "Нет, реле молчит", next: "relay_broken", type: "no" },
+                ]
+            },
+            
+            relay_broken: {
+                solution: {
+                    title: "РЕШЕНИЕ",
+                    emoji: "🔧",
+                    text: "Неисправно реле давления.",
+                    steps: [
+                        "Отключите питание",
+                        "Снимите крышку реле",
+                        "Проверьте, не подгорели ли контакты",
+                        "При необходимости замените реле (стоит недорого)"
+                    ]
+                }
+            },
+            
+            check_hydro: {
+                category: "Шаг 6",
+                emoji: "🫙",
+                question: "Проверьте гидроаккумулятор. Нажмите на ниппель — выходит воздух или вода?",
+                answers: [
+                    { text: "Выходит воздух", next: "check_membrane", type: "yes" },
+                    { text: "Выходит вода", next: "membrane_broken", type: "no" },
+                ]
+            },
+            
+            membrane_broken: {
+                solution: {
+                    title: "ПРОБЛЕМА",
+                    emoji: "💧",
+                    text: "Порвана мембрана гидроаккумулятора.",
+                    steps: [
+                        "Отключите насос и слейте воду из системы",
+                        "Открутите фланец гидроаккумулятора",
+                        "Замените мембрану на новую",
+                        "Накачайте воздух до 1.5 атм"
+                    ],
+                    contact: {
+                        label: "Нужна помощь?",
+                        name: "Сантехник Михаил",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            check_membrane: {
+                solution: {
+                    title: "ДИАГНОСТИКА",
+                    emoji: "✅",
+                    text: "Мембрана цела. Возможно проблема глубже.",
+                    steps: [
+                        "Проверьте настройки реле давления (нижний/верхний порог)",
+                        "Проверьте, не забита ли труба от насоса до дома",
+                        "Уточните, не падал ли уровень воды в скважине"
+                    ],
+                    contact: {
+                        label: "Остались вопросы? Звоните:",
+                        name: "Техподдержка",
+                        phone: "+7 (XXX) XXX-XX-XX"
+                    }
+                }
+            },
+            
+            solved_temp: {
+                solution: {
+                    title: "ГОТОВО! ✅",
+                    emoji: "🎉",
+                    text: "Проблема решена! Это было временное отключение.",
+                    steps: [
+                        "Автомат мог выбить из-за скачка напряжения",
+                        "Понаблюдайте за работой в ближайшие часы",
+                        "Если проблема повторится — вернитесь к диагностике"
+                    ]
+                }
+            }
+        };
+        
+        // ============================================
+        // ЛОГИКА ПРИЛОЖЕНИЯ
+        // ============================================
+        
+        let history = ['start'];
+        let currentStep = 'start';
+        
+        function renderStep(stepId) {
+            const node = tree[stepId];
+            const card = document.getElementById('mainCard');
+            const progressDiv = document.getElementById('progress');
+            
+            // Обновляем прогресс
+            const depth = history.length;
+            let progressHTML = '';
+            for (let i = 0; i < 6; i++) {
+                if (i < depth - 1) progressHTML += '<div class="step-dot done"></div>';
+                else if (i === depth - 1) progressHTML += '<div class="step-dot active"></div>';
+                else progressHTML += '<div class="step-dot"></div>';
+                if (i < 5) progressHTML += '<div class="step-line"></div>';
+            }
+            progressDiv.innerHTML = progressHTML;
+            
+            // Рендерим карточку
+            if (node.solution) {
+                // Финальный экран с решением
+                let contactHTML = '';
+                if (node.solution.contact) {
+                    contactHTML = `
+                        <div class="contact-info">
+                            <div class="contact-label">${node.solution.contact.label}</div>
+                            <div class="contact-phone">${node.solution.contact.phone}</div>
+                            <div class="contact-name">${node.solution.contact.name}</div>
+                        </div>
+                    `;
+                }
+                
+                card.className = 'card solution-card';
+                card.innerHTML = `
+                    <div class="solution-title">${node.solution.title}</div>
+                    <div class="question-emoji">${node.solution.emoji}</div>
+                    <div class="solution-text">${node.solution.text}</div>
+                    <div class="solution-steps">
+                        <ol>
+                            ${node.solution.steps.map(s => `<li>${s}</li>`).join('')}
+                        </ol>
+                    </div>
+                    ${contactHTML}
+                    <button class="btn btn-full btn-back" onclick="restart()">
+                        🔄 Начать сначала
+                    </button>
+                `;
+            } else {
+                // Экран вопроса
+                card.className = 'card';
+                const answersHTML = node.answers.map((a, i) => {
+                    let btnClass = 'btn-action';
+                    if (a.type === 'yes') btnClass = 'btn-yes';
+                    if (a.type === 'no') btnClass = 'btn-no';
+                    if (a.type === 'neutral') btnClass = 'btn-neutral';
+                    
+                    let emoji = '';
+                    if (a.type === 'yes') emoji = '✅';
+                    if (a.type === 'no') emoji = '❌';
+                    if (a.type === 'neutral') emoji = '🤔';
+                    
+                    return `
+                        <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
+                            ${emoji} ${a.text}
+                        </button>
+                    `;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div class="category-badge">${node.category}</div>
+                    <div class="question-emoji">${node.emoji}</div>
+                    <div class="question">${node.question}</div>
+                    <div class="answers">
+                        ${answersHTML}
+                        ${history.length > 1 ? `
+                            <button class="btn btn-full btn-back" onclick="goBack()">
+                                ⬅ Назад
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-full btn-back" onclick="restart()" style="margin-top: 4px;">
+                            🔄 Начать заново
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Прокрутка к карточке на мобильных
+            setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+        
+        function goTo(stepId) {
+            history.push(stepId);
+            currentStep = stepId;
+            renderStep(stepId);
+        }
+        
+        function goBack() {
+            if (history.length > 1) {
+                history.pop();
+                currentStep = history[history.length - 1];
+                renderStep(currentStep);
+            }
+        }
+        
+        function restart() {
+            history = ['start'];
+            currentStep = 'start';
+            renderStep('start');
+        }
+        
+        // Запуск
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStep('start');
+        });
+    </script>
+</body>
+</html>
