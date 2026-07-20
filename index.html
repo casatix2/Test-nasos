@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Помощник по бурению</title>
+    <title>ННТС Хелпер</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,7 +15,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
-                const CACHE = 'drilling-v1';
+                const CACHE = 'drilling-v2';
                 self.addEventListener('install', e => {
                     e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['/'])));
                     self.skipWaiting();
@@ -37,7 +37,7 @@
             --text: #eee;
             --text-secondary: #a0a0b0;
             --success: #2ecc71;
-            --warning: #f39c12;
+            --warning: #3498db;
             --info: #3498db;
         }
         
@@ -200,8 +200,8 @@
         }
         
         .btn-extra {
-            background: var(--warning);
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            background: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
         }
         
         .btn-back {
@@ -263,6 +263,7 @@
         
         .contact-info {
             background: rgba(233, 68, 96, 0.1);
+            border: 1px solid rgba(233, 68, 96, 0.3);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 16px;
@@ -270,8 +271,8 @@
         }
         
         .contact-label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        .contact-phone { font-size: 20px; font-weight: 700; margin: 4px 0; }
-        .contact-name { font-size: 13px; color: var(--text-secondary); }
+        .contact-name { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
+        .contact-phone { font-size: 20px; font-weight: 700; color: #fff; }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -299,21 +300,25 @@
     
     <script>
         // ============================================
-        // ДЕРЕВО РЕШЕНИЙ — Низкий уровень подземных вод
+        // ДЕРЕВО РЕШЕНИЙ
         // ============================================
         const tree = {
-            // Главное меню (потом добавим другие ситуации)
+            
+            // Главное меню
             menu: {
                 type: 'menu',
                 title: 'Выберите ситуацию',
                 emoji: '📋',
                 items: [
-                    { text: '💧 Низкий уровень подземных вод', next: 'low_water_step1' },
-                    // Здесь будут добавляться другие ситуации
+                    { text: 'Низкий уровень подземных вод', next: 'low_water_step1' },
                 ]
             },
             
-            // Шаг 1: Пакер
+            // ============================================
+            // НИЗКИЙ УРОВЕНЬ ПОДЗЕМНЫХ ВОД
+            // ============================================
+            
+            // Шаг 1: Установлен ли пакер?
             low_water_step1: {
                 situation: 'Низкий уровень подземных вод',
                 step: 1,
@@ -322,10 +327,10 @@
                 question: 'Установлен ли пакер?',
                 comment: '',
                 answers: [
-                    { text: 'Да, установлен', next: 'low_water_step2', type: 'yes' },
-                    { text: 'Нет, не установлен', next: 'low_water_step3', type: 'no' },
+                    { text: 'Да', next: 'low_water_step2', type: 'yes' },
+                    { text: 'Нет', next: 'low_water_step3', type: 'no' },
                     { 
-                        text: 'Перед установкой — уровень ниже кровли интервала', 
+                        text: 'Перед установкой пакера общий уровень ниже кровли предполагаемого интервала', 
                         next: 'low_water_step3', 
                         type: 'extra',
                         comment: 'Пакер не устанавливаем. Делаем опыт в интервале: Уровень воды-забой.'
@@ -340,37 +345,38 @@
                 totalSteps: 3,
                 emoji: '📏',
                 question: 'Уровень ниже пакера?',
-                comment: 'Проверьте показания датчика уровня относительно положения пакера.',
+                comment: '',
                 answers: [
-                    { text: 'Да, уровень ниже', next: 'solution_packer_remove', type: 'yes' },
-                    { text: 'Нет, не ниже', next: 'low_water_step3', type: 'no' },
+                    { text: 'Да', next: 'solution_packer_check', type: 'yes' },
+                    { text: 'Нет', next: 'low_water_step3', type: 'no' },
                     { 
-                        text: 'Уровень на уровне посадочного кольца (4-5 м над пакером)', 
-                        next: 'low_water_step3', 
+                        text: 'На уровне с посадочным кольцом (4-5 м над пакером)', 
+                        next: 'solution_lower_sensor', 
                         type: 'extra',
-                        comment: 'Уровень высоко — переходим к проверке насоса.'
                     },
                 ]
             },
             
-            // Шаг 3: Насос
+            // Шаг 3: Есть ли возможность спустить насос?
             low_water_step3: {
                 situation: 'Низкий уровень подземных вод',
                 step: 3,
                 totalSteps: 3,
                 emoji: '💧',
                 question: 'Есть ли возможность спустить насос?',
-                comment: 'Нужно загрузить насос под статический уровень минимум на 3-4 метра. Проверьте марку насоса и его характеристику — поднимет ли он воду с глубины загрузки. По опыту нашего оборудования максимальная глубина спуска насоса 150-160 м (Grundfos 1-155).',
+                comment: 'Нужно загрузить насос под статический уровень минимум на 3-4 метра (оптимально 10+ метров). Посмотрите марку насоса и его характеристику — поднимет ли данный насос воду с глубины его загрузки. По опыту нашего оборудования максимальная глубина спуска насоса 150-160 м (Grundfos 1-155).',
                 answers: [
-                    { text: 'Да, можно спустить', next: 'solution_lower_pump', type: 'yes' },
-                    { text: 'Нет, нельзя спустить', next: 'solution_lower_sensor', type: 'no' },
+                    { text: 'Да', next: 'solution_lower_pump', type: 'yes' },
+                    { text: 'Нет', next: 'solution_lower_sensor', type: 'no' },
                 ]
             },
             
-            // === ФИНАЛЬНЫЕ РЕШЕНИЯ ===
+            // ============================================
+            // ФИНАЛЬНЫЕ РЕШЕНИЯ
+            // ============================================
             
-            // Решение: Достаём пакер и проверяем датчик
-            solution_packer_remove: {
+            // Решение: Достаём пакер, проверяем датчик
+            solution_packer_check: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
                     emoji: '🔧',
@@ -379,10 +385,15 @@
                         'Извлеките пакер из скважины.',
                         'Проверьте датчик уровня в пакере.',
                         'Если датчик показывает, что уровень БЫЛ — возвращаем пакер на место и делаем налив.',
-                        'Если датчик СУХОЙ — устанавливаем пакер ниже на 5 м (ориентируйтесь по состоянию керна).',
-                        'Повторяем процедуру до тех пор, пока не появится уровень.'
+                        'Если датчик СУХОЙ — устанавливаем пакер ниже на 5 м (ориентироваться по состоянию керна).',
+                        'Повторять процедуру до тех пор, пока не появится уровень.',
+                        'Следует оповестить Заказчика.'
                     ],
-                    contact: null
+                    contact: {
+                        name: 'Старший гидрогеолог',
+                        person: 'Касатых Андрей Евгеньевич',
+                        phone: '+7 (999) 721-68-79'
+                    }
                 }
             },
             
@@ -393,7 +404,7 @@
                     emoji: '💧',
                     text: 'Спускаем насос и делаем прокачку.',
                     steps: [
-                        'Загрузите насос под статический уровень минимум на 3-4 метра.',
+                        'Загрузите насос под статический уровень минимум на 3-4 метра (оптимально 10+ метров).',
                         'Убедитесь, что насос способен поднять воду с данной глубины (макс. 150-160 м для Grundfos 1-155).',
                         'Запустите насос и выполните прокачку.',
                         'Контролируйте уровень воды в процессе откачки.'
@@ -407,7 +418,7 @@
                 situation: 'Низкий уровень подземных вод',
                 solution: {
                     emoji: '📊',
-                    text: 'Спускаем датчик под уровень воды и делаем налив.',
+                    text: 'Спускаем датчик под уровень воды и делаем налив/экспресс-налив.',
                     steps: [
                         'Спустите датчик под уровень воды (желательно на 15-20 метров).',
                         'Если есть возможность — спустите ещё ниже.',
@@ -424,23 +435,6 @@
         // ============================================
         
         let history = ['menu'];
-        
-        function getStepsList(nodeId) {
-            // Собирает цепочку шагов для отображения в индикаторе
-            if (nodeId === 'menu') return [];
-            const node = tree[nodeId];
-            if (!node || !node.situation) return [];
-            
-            let steps = [];
-            // Ищем все шаги этой ситуации
-            Object.entries(tree).forEach(([key, value]) => {
-                if (value.situation === node.situation && value.step) {
-                    steps.push({ id: key, step: value.step, totalSteps: value.totalSteps });
-                }
-            });
-            steps.sort((a, b) => a.step - b.step);
-            return steps;
-        }
         
         function renderStep(stepId) {
             const node = tree[stepId];
@@ -484,7 +478,7 @@
             // Ситуация (шапка)
             let situationHTML = '';
             if (node.situation) {
-                situationHTML = `<div class="situation-badge">📌 ${node.situation}</div>`;
+                situationHTML = `<div class="situation-badge">${node.situation}</div>`;
             }
             
             // Решение
@@ -493,9 +487,10 @@
                 if (node.solution.contact) {
                     contactHTML = `
                         <div class="contact-info">
-                            <div class="contact-label">${node.solution.contact.label}</div>
+                            <div class="contact-label">КОНТАКТ</div>
+                            <div class="contact-name">${node.solution.contact.person}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);">${node.solution.contact.name}</div>
                             <div class="contact-phone">${node.solution.contact.phone}</div>
-                            <div class="contact-name">${node.solution.contact.name}</div>
                         </div>
                     `;
                 }
@@ -512,8 +507,8 @@
                         </ol>
                     </div>
                     ${contactHTML}
-                    <button class="btn btn-full btn-back" onclick="goBack()">⬅ Назад</button>
-                    <button class="btn btn-full btn-back" onclick="goToMenu()" style="margin-top:4px;">📋 К списку ситуаций</button>
+                    <button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>
+                    <button class="btn btn-full btn-back" onclick="goToMenu()" style="margin-top:4px;">К списку ситуаций</button>
                 `;
                 return;
             }
@@ -521,20 +516,22 @@
             // Вопрос
             const answersHTML = node.answers.map(a => {
                 let btnClass = 'btn-yes';
-                let emoji = '✅';
-                if (a.type === 'no') { btnClass = 'btn-no'; emoji = '❌'; }
-                if (a.type === 'extra') { btnClass = 'btn-extra'; emoji = '⚠️'; }
+                let label = 'Да';
+                if (a.type === 'no') { btnClass = 'btn-no'; label = 'Нет'; }
+                if (a.type === 'extra') { btnClass = 'btn-extra'; label = 'Доп.'; }
                 
                 let commentHTML = '';
                 if (a.comment) {
-                    commentHTML = `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;font-weight:400;">${a.comment}</div>`;
+                    commentHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400;">${a.comment}</div>`;
                 }
+                
+                // Для доп. ответов показываем полный текст вместо "Да"/"Нет"
+                let displayText = a.text;
                 
                 return `
                     <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
-                        <span>${emoji}</span>
                         <span style="flex:1;text-align:left;">
-                            ${a.text}
+                            ${displayText}
                             ${commentHTML}
                         </span>
                     </button>
@@ -543,7 +540,7 @@
             
             let commentHTML = '';
             if (node.comment) {
-                commentHTML = `<div class="question-comment">💡 ${node.comment}</div>`;
+                commentHTML = `<div class="question-comment">${node.comment}</div>`;
             }
             
             card.className = 'card';
@@ -556,9 +553,9 @@
                 <div class="answers">
                     ${answersHTML}
                     ${history.length > 1 ? `
-                        <button class="btn btn-full btn-back" onclick="goBack()">⬅ Назад</button>
+                        <button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>
                     ` : ''}
-                    <button class="btn btn-full btn-back" onclick="goToMenu()">📋 К списку ситуаций</button>
+                    <button class="btn btn-full btn-back" onclick="goToMenu()">К списку ситуаций</button>
                 </div>
             `;
             
