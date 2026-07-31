@@ -66,10 +66,7 @@
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
+        html { height: 100%; overflow: hidden; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -93,11 +90,7 @@
             padding-bottom: 100px;
         }
         
-        .header {
-            text-align: center;
-            padding: 24px 0 16px;
-        }
-        
+        .header { text-align: center; padding: 24px 0 16px; }
         .logo { font-size: 42px; margin-bottom: 8px; }
         .title { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
         .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
@@ -121,20 +114,9 @@
             white-space: nowrap;
         }
         
-        .step-badge.active {
-            background: var(--accent);
-            color: #fff;
-        }
-        
-        .step-badge.done {
-            background: var(--success);
-            color: #fff;
-        }
-        
-        .step-arrow {
-            color: var(--text-secondary);
-            font-size: 10px;
-        }
+        .step-badge.active { background: var(--accent); color: #fff; }
+        .step-badge.done { background: var(--success); color: #fff; }
+        .step-arrow { color: var(--text-secondary); font-size: 10px; }
         
         .card {
             background: var(--card);
@@ -157,13 +139,7 @@
             letter-spacing: 0.5px;
         }
         
-        .step-number {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-        
-        .question-emoji { font-size: 48px; margin-bottom: 12px; }
+        .step-number { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
         
         .question {
             font-size: 20px;
@@ -183,11 +159,7 @@
             color: var(--text-secondary);
         }
         
-        .answers {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .answers { display: flex; flex-direction: column; gap: 10px; }
         
         .btn {
             display: flex;
@@ -213,20 +185,9 @@
         
         .btn:active { transform: scale(0.97); }
         
-        .btn-yes {
-            background: var(--success);
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-        }
-        
-        .btn-no {
-            background: var(--accent);
-            box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3);
-        }
-        
-        .btn-extra {
-            background: #2980b9;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
+        .btn-yes { background: var(--success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
+        .btn-no { background: var(--accent); box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3); }
+        .btn-extra { background: #2980b9; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
         
         .btn-back {
             background: transparent;
@@ -258,8 +219,6 @@
             letter-spacing: 1px;
             margin-bottom: 16px;
         }
-        
-        .solution-emoji { font-size: 48px; margin-bottom: 12px; }
         
         .solution-text {
             font-size: 17px;
@@ -306,10 +265,7 @@
             display: none;
         }
         
-        .update-bar.show {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
+        .update-bar.show { display: block; animation: slideUp 0.3s ease; }
         
         .btn-update {
             background: #e94560;
@@ -325,9 +281,7 @@
             white-space: nowrap;
         }
         
-        .btn-update:active {
-            transform: scale(0.95);
-        }
+        .btn-update:active { transform: scale(0.95); }
         
         .update-status {
             position: fixed;
@@ -345,10 +299,7 @@
             box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
         }
         
-        .update-status.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
+        .update-status.show { display: block; animation: slideDown 0.3s ease; }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -366,13 +317,8 @@
         }
         
         @supports (padding: max(0px)) {
-            .container {
-                padding-bottom: max(100px, env(safe-area-inset-bottom) + 60px);
-            }
-            
-            .update-bar {
-                bottom: max(20px, env(safe-area-inset-bottom));
-            }
+            .container { padding-bottom: max(100px, env(safe-area-inset-bottom) + 60px); }
+            .update-bar { bottom: max(20px, env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -389,23 +335,16 @@
     </div>
     
     <div class="update-bar" id="updateBar">
-        <button class="btn-update" onclick="updateApp()">
-            Доступно обновление
-        </button>
+        <button class="btn-update" onclick="updateApp()">Доступно обновление</button>
     </div>
     <div class="update-status" id="updateStatus"></div>
     
     <script>
-        // ============================================
-        // ДЕРЕВО РЕШЕНИЙ
-        // ============================================
         const tree = {
             
-            // Главное меню
             menu: {
                 type: 'menu',
                 title: 'Выберите ситуацию',
-                emoji: '📋',
                 items: [
                     { text: 'Низкий уровень подземных вод', next: 'low_water_step1' },
                     { text: 'Уровень воды "на оголовке"', next: 'on_head_step1' },
@@ -413,47 +352,42 @@
                     { text: 'Когда заканчивать откачку?', next: 'stop_pump_step1' },
                     { text: 'Когда заканчивать восстановление?', next: 'stop_recovery_step1' },
                     { text: 'Как подобрать дебит при откачке или наливе?', next: 'debit_step1' },
+                    { text: 'Не получается создать давление при нагнетании', next: 'no_pressure_step1' },
+                    { text: 'Как выбрать давление при нагнетании', next: 'pressure_guide' },
                 ]
             },
             
             // ============================================
-            // СИТУАЦИЯ 1: НИЗКИЙ УРОВЕНЬ ПОДЗЕМНЫХ ВОД
+            // 1. НИЗКИЙ УРОВЕНЬ ПОДЗЕМНЫХ ВОД
             // ============================================
             
             low_water_step1: {
                 situation: 'Низкий уровень подземных вод',
-                step: 1, totalSteps: 3, emoji: '🔧',
+                step: 1, totalSteps: 3,
                 question: 'Установлен ли пакер?',
                 comment: '',
                 answers: [
                     { text: 'Да', next: 'low_water_step2', type: 'yes' },
                     { text: 'Нет', next: 'low_water_step3', type: 'no' },
-                    { 
-                        text: 'Перед установкой пакера общий уровень ниже кровли предполагаемого интервала', 
-                        next: 'low_water_step3', type: 'extra',
-                        comment: 'Пакер не устанавливаем. Делаем опыт в интервале: Уровень воды-забой.'
-                    },
+                    { text: 'Перед установкой пакера общий уровень ниже кровли предполагаемого интервала', next: 'low_water_step3', type: 'extra', comment: 'Пакер не устанавливаем. Делаем опыт в интервале: Уровень воды-забой.' },
                 ]
             },
             
             low_water_step2: {
                 situation: 'Низкий уровень подземных вод',
-                step: 2, totalSteps: 3, emoji: '📏',
+                step: 2, totalSteps: 3,
                 question: 'Уровень ниже пакера?',
                 comment: '',
                 answers: [
                     { text: 'Да', next: 'low_water_solution_packer', type: 'yes' },
                     { text: 'Нет', next: 'low_water_step3', type: 'no' },
-                    { 
-                        text: 'На уровне с посадочным кольцом (4-5 м над пакером)', 
-                        next: 'low_water_solution_sensor', type: 'extra',
-                    },
+                    { text: 'На уровне с посадочным кольцом (4-5 м над пакером)', next: 'low_water_solution_sensor', type: 'extra' },
                 ]
             },
             
             low_water_step3: {
                 situation: 'Низкий уровень подземных вод',
-                step: 3, totalSteps: 3, emoji: '💧',
+                step: 3, totalSteps: 3,
                 question: 'Есть ли возможность спустить насос?',
                 comment: 'Нужно загрузить насос под статический уровень минимум на 3-4 метра (оптимально 10+ метров). Посмотрите марку насоса и его характеристику — поднимет ли данный насос воду с глубины его загрузки. По опыту нашего оборудования максимальная глубина спуска насоса 150-160 м (Grundfos 1-155).',
                 answers: [
@@ -465,7 +399,6 @@
             low_water_solution_packer: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
-                    emoji: '🔧',
                     text: 'Достаём пакер и проверяем датчик.',
                     steps: [
                         'Извлеките пакер из скважины.',
@@ -482,7 +415,6 @@
             low_water_solution_pump: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
-                    emoji: '💧',
                     text: 'Спускаем насос и делаем прокачку.',
                     steps: [
                         'Загрузите насос под статический уровень минимум на 3-4 метра (оптимально 10+ метров).',
@@ -497,7 +429,6 @@
             low_water_solution_sensor: {
                 situation: 'Низкий уровень подземных вод',
                 solution: {
-                    emoji: '📊',
                     text: 'Спускаем датчик под уровень воды и делаем налив/экспресс-налив.',
                     steps: [
                         'Спустите датчик под уровень воды (желательно на 15-20 метров).',
@@ -510,12 +441,12 @@
             },
             
             // ============================================
-            // СИТУАЦИЯ 2: УРОВЕНЬ ВОДЫ "НА ОГОЛОВКЕ"
+            // 2. УРОВЕНЬ ВОДЫ "НА ОГОЛОВКЕ"
             // ============================================
             
             on_head_step1: {
                 situation: 'Уровень воды "на оголовке"',
-                step: 1, totalSteps: 3, emoji: '💦',
+                step: 1, totalSteps: 3,
                 question: 'Установлен ли пакер?',
                 comment: '',
                 answers: [
@@ -526,7 +457,7 @@
             
             on_head_step2: {
                 situation: 'Уровень воды "на оголовке"',
-                step: 2, totalSteps: 3, emoji: '📈',
+                step: 2, totalSteps: 3,
                 question: 'Как ведет себя уровень после "отстрела"?',
                 comment: '',
                 answers: [
@@ -538,7 +469,7 @@
             
             on_head_step3: {
                 situation: 'Уровень воды "на оголовке"',
-                step: 3, totalSteps: 3, emoji: '📉',
+                step: 3, totalSteps: 3,
                 question: 'Как ведет себя уровень?',
                 comment: '',
                 answers: [
@@ -550,7 +481,6 @@
             on_head_solution_observe: {
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
-                    emoji: '👀',
                     text: 'Наблюдаем за уровнем.',
                     steps: [
                         'Можно накрутить ещё трубу, чтобы было куда расти уровню.',
@@ -564,7 +494,6 @@
             on_head_solution_inject: {
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
-                    emoji: '💉',
                     text: 'Делаем нагнетание.',
                     steps: [
                         'Выполните нагнетание без различных прокачек, желонирований и т.д.',
@@ -577,7 +506,6 @@
             on_head_solution_wait: {
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
-                    emoji: '⏳',
                     text: 'Дожидаемся статического уровня или спускаем насос.',
                     steps: [
                         'Либо дождитесь статического уровня и делайте прокачку/налив (если нет возможности спустить насос).',
@@ -590,7 +518,6 @@
             on_head_solution_annulus: {
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
-                    emoji: '🔍',
                     text: 'Обратите внимание на затрубное пространство.',
                     steps: [
                         'Скорее всего, при превышении напора над поверхностью земли вода будет выходить между бурильной трубой и обсадной.',
@@ -602,28 +529,24 @@
             },
             
             // ============================================
-            // СИТУАЦИЯ 3: ОСУШЕНИЕ НАСОСА
+            // 3. ОСУШЕНИЕ НАСОСА
             // ============================================
             
             dry_pump_step1: {
                 situation: 'Происходит "осушение" насоса при прокачке/откачке',
-                step: 1, totalSteps: 1, emoji: '🏜️',
+                step: 1, totalSteps: 1,
                 question: 'Есть ли возможность спустить насос глубже?',
                 comment: '',
                 answers: [
                     { text: 'Да', next: 'dry_pump_solution_deeper', type: 'yes' },
                     { text: 'Нет', next: 'dry_pump_solution_change', type: 'no' },
-                    { 
-                        text: 'Я уверен, что интервал "глухой"', 
-                        next: 'dry_pump_solution_inject', type: 'extra',
-                    },
+                    { text: 'Я уверен, что интервал "глухой"', next: 'dry_pump_solution_inject', type: 'extra' },
                 ]
             },
             
             dry_pump_solution_deeper: {
                 situation: 'Происходит "осушение" насоса',
                 solution: {
-                    emoji: '⬇️',
                     text: 'Спускайте насос глубже.',
                     steps: [
                         'По опыту нашего оборудования максимальная глубина спуска насоса 150-160 м (Grundfos 1-155).',
@@ -636,7 +559,6 @@
             dry_pump_solution_change: {
                 situation: 'Происходит "осушение" насоса',
                 solution: {
-                    emoji: '🔄',
                     text: 'Поменяйте насос на менее производительный.',
                     steps: [
                         'Если есть понимание, что это поможет — можно поставить на выпуск кран-задвижку и немного "задушить" насос.',
@@ -650,23 +572,19 @@
             dry_pump_solution_inject: {
                 situation: 'Происходит "осушение" насоса',
                 solution: {
-                    emoji: '💉',
-                    text: 'Достаём насос и делаем налив/нагнетание.',
-                    steps: [
-                        'Предупредить контактное лицо, но не ждать от него ответа.',
-                        'Выполнить налив или нагнетание.'
-                    ],
+                    text: 'Достаём насос и делаем налив/нагнетание (при наличии пакера).',
+                    steps: [],
                     contact: { name: 'Старший гидрогеолог', person: 'Касатых Андрей Евгеньевич', phone: '+7 (999) 721-68-79' }
                 }
             },
             
             // ============================================
-            // СИТУАЦИЯ 4: КОГДА ЗАКАНЧИВАТЬ ОТКАЧКУ
+            // 4. КОГДА ЗАКАНЧИВАТЬ ОТКАЧКУ
             // ============================================
             
             stop_pump_step1: {
                 situation: 'Когда заканчивать откачку?',
-                step: 1, totalSteps: 3, emoji: '⏱️',
+                step: 1, totalSteps: 3,
                 question: 'Сколько прошло времени откачки?',
                 comment: '',
                 answers: [
@@ -678,7 +596,7 @@
             
             stop_pump_step2: {
                 situation: 'Когда заканчивать откачку?',
-                step: 2, totalSteps: 3, emoji: '📊',
+                step: 2, totalSteps: 3,
                 question: 'Достигло ли понижение стационарного режима?',
                 comment: '',
                 answers: [
@@ -689,7 +607,7 @@
             
             stop_pump_step3: {
                 situation: 'Когда заканчивать откачку?',
-                step: 3, totalSteps: 3, emoji: '📏',
+                step: 3, totalSteps: 3,
                 question: 'Сколько воды над насосом на данный момент?',
                 comment: '',
                 answers: [
@@ -701,66 +619,40 @@
             
             stop_pump_solution_finish: {
                 situation: 'Когда заканчивать откачку?',
-                solution: {
-                    emoji: '✅',
-                    text: 'Завершаем откачку и переходим к восстановлению уровня.',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Завершаем откачку и переходим к восстановлению уровня.', steps: [], contact: null }
             },
             
             stop_pump_solution_continue: {
                 situation: 'Когда заканчивать откачку?',
                 solution: {
-                    emoji: '⏳',
                     text: 'Продолжаем откачку и наблюдение за уровнем.',
-                    steps: [
-                        'Сообщить контактному лицу.',
-                        'Желательно не проводить откачку больше 36 часов, только по согласованию с контактным лицом.'
-                    ],
+                    steps: ['Сообщить контактному лицу.', 'Желательно не проводить откачку больше 36 часов, только по согласованию с контактным лицом.'],
                     contact: { name: 'Старший гидрогеолог', person: 'Касатых Андрей Евгеньевич', phone: '+7 (999) 721-68-79' }
                 }
             },
             
             stop_pump_solution_stop: {
                 situation: 'Когда заканчивать откачку?',
-                solution: {
-                    emoji: '🛑',
-                    text: 'Выключаем насос и переходим к восстановлению.',
-                    steps: ['Сообщите контактному лицу.'],
-                    contact: { name: 'Старший гидрогеолог', person: 'Касатых Андрей Евгеньевич', phone: '+7 (999) 721-68-79' }
-                }
+                solution: { text: 'Выключаем насос и переходим к восстановлению. Сообщите контактному лицу.', steps: [], contact: { name: 'Старший гидрогеолог', person: 'Касатых Андрей Евгеньевич', phone: '+7 (999) 721-68-79' } }
             },
             
             stop_pump_solution_careful: {
                 situation: 'Когда заканчивать откачку?',
-                solution: {
-                    emoji: '⚠️',
-                    text: 'Продолжаем откачку и наблюдение за уровнем.',
-                    steps: [
-                        'Если уровень над насосом достигнет < 1 метра — стоит прекратить откачку и начать восстановление.'
-                    ],
-                    contact: null
-                }
+                solution: { text: 'Продолжаем откачку и наблюдение за уровнем. Если уровень над насосом достигнет < 1 метра — стоит прекратить откачку и начать восстановление.', steps: [], contact: null }
             },
             
             stop_pump_solution_keep: {
                 situation: 'Когда заканчивать откачку?',
-                solution: {
-                    emoji: '💧',
-                    text: 'Продолжаем качать.',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Продолжаем качать.', steps: [], contact: null }
             },
             
             // ============================================
-            // СИТУАЦИЯ 5: КОГДА ЗАКАНЧИВАТЬ ВОССТАНОВЛЕНИЕ
+            // 5. КОГДА ЗАКАНЧИВАТЬ ВОССТАНОВЛЕНИЕ
             // ============================================
             
             stop_recovery_step1: {
                 situation: 'Когда заканчивать восстановление?',
-                step: 1, totalSteps: 3, emoji: '🔄',
+                step: 1, totalSteps: 3,
                 question: 'Какой вид опыта?',
                 comment: '',
                 answers: [
@@ -771,7 +663,7 @@
             
             stop_recovery_step2: {
                 situation: 'Когда заканчивать восстановление?',
-                step: 2, totalSteps: 3, emoji: '📈',
+                step: 2, totalSteps: 3,
                 question: 'Какое изменение уровня наблюдается последние 3-4 часа?',
                 comment: '',
                 answers: [
@@ -783,7 +675,7 @@
             
             stop_recovery_step3: {
                 situation: 'Когда заканчивать восстановление?',
-                step: 3, totalSteps: 3, emoji: '📋',
+                step: 3, totalSteps: 3,
                 question: 'Выберите подборку параметров на текущий момент:',
                 comment: '',
                 answers: [
@@ -795,51 +687,31 @@
             
             stop_recovery_solution_finish: {
                 situation: 'Когда заканчивать восстановление?',
-                solution: {
-                    emoji: '✅',
-                    text: 'Восстановление можно завершать.',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Восстановление можно завершать.', steps: [], contact: null }
             },
             
             stop_recovery_solution_finish_graph: {
                 situation: 'Когда заканчивать восстановление?',
-                solution: {
-                    emoji: '📊',
-                    text: 'Восстановление можно завершать при условии, что в логарифмическом масштабе график будет интерпретируемый при обработке.',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Восстановление можно завершать при условии, что в логарифмическом масштабе график будет интерпретируемый при обработке.', steps: [], contact: null }
             },
             
             stop_recovery_solution_wait: {
                 situation: 'Когда заканчивать восстановление?',
-                solution: {
-                    emoji: '⏳',
-                    text: 'Продолжаем наблюдение за уровнем.',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Продолжаем наблюдение за уровнем.', steps: [], contact: null }
             },
             
             stop_recovery_solution_inject: {
                 situation: 'Когда заканчивать восстановление?',
-                solution: {
-                    emoji: '💉',
-                    text: 'Следует выполнить нагнетание, интервал "глухой".',
-                    steps: [],
-                    contact: null
-                }
+                solution: { text: 'Следует выполнить нагнетание, интервал "глухой".', steps: [], contact: null }
             },
             
             // ============================================
-            // СИТУАЦИЯ 6: КАК ПОДОБРАТЬ ДЕБИТ
+            // 6. КАК ПОДОБРАТЬ ДЕБИТ
             // ============================================
             
             debit_step1: {
                 situation: 'Как подобрать дебит при откачке или наливе?',
-                step: 1, totalSteps: 4, emoji: '🔧',
+                step: 1, totalSteps: 4,
                 question: 'Какой вид опыта?',
                 comment: '',
                 answers: [
@@ -851,7 +723,6 @@
             debit_solution_naliv: {
                 situation: 'Как подобрать дебит?',
                 solution: {
-                    emoji: '💧',
                     text: 'Попробуйте для начала средний дебит бурового насоса (обычно около 3.5 м³/час).',
                     steps: [
                         'Начните пробный налив.',
@@ -864,7 +735,7 @@
             
             debit_step2: {
                 situation: 'Как подобрать дебит при откачке или наливе?',
-                step: 2, totalSteps: 4, emoji: '❓',
+                step: 2, totalSteps: 4,
                 question: 'Была ли сделана прокачка?',
                 comment: '',
                 answers: [
@@ -875,19 +746,12 @@
             
             debit_solution_do_pump: {
                 situation: 'Как подобрать дебит?',
-                solution: {
-                    emoji: '💧',
-                    text: 'Сделайте прокачку любым доступным насосом.',
-                    steps: [
-                        'По результатам прокачки возможно появится понимание о дебите и понижении.'
-                    ],
-                    contact: null
-                }
+                solution: { text: 'Сделайте прокачку любым доступным насосом. По результатам прокачки возможно появится понимание о дебите и понижении.', steps: [], contact: null }
             },
             
             debit_step3: {
                 situation: 'Как подобрать дебит при откачке или наливе?',
-                step: 3, totalSteps: 4, emoji: '📊',
+                step: 3, totalSteps: 4,
                 question: 'Какие показания были получены при прокачке?',
                 comment: '',
                 answers: [
@@ -900,20 +764,15 @@
             debit_solution_stronger: {
                 situation: 'Как подобрать дебит?',
                 solution: {
-                    emoji: '⬆️',
                     text: 'Стоит поставить более производительный насос.',
-                    steps: [
-                        'Если нет такой возможности — запустите дополнительную прокачку на 12 часов.',
-                        'Проведите отбор проб.',
-                        'Далее сделайте налив с максимально возможным дебитом.'
-                    ],
+                    steps: ['Если нет такой возможности — запустите дополнительную прокачку на 12 часов.', 'Проведите отбор проб.', 'Далее сделайте налив с максимально возможным дебитом.'],
                     contact: null
                 }
             },
             
             debit_step4: {
                 situation: 'Как подобрать дебит при откачке или наливе?',
-                step: 4, totalSteps: 4, emoji: '📏',
+                step: 4, totalSteps: 4,
                 question: 'Сколько метров воды над насосом к концу прокачки?',
                 comment: '',
                 answers: [
@@ -924,29 +783,74 @@
             
             debit_solution_deeper: {
                 situation: 'Как подобрать дебит?',
+                solution: { text: 'Если есть возможность, стоит заглубить насос на 10+ метров. Если нет такой возможности — следует проводить откачку с особой осторожностью, чтобы не произошло осушения насоса.', steps: [], contact: null }
+            },
+            
+            debit_solution_same: {
+                situation: 'Как подобрать дебит?',
+                solution: { text: 'Завершив восстановление после прокачки, приступайте к откачке с такими же параметрами.', steps: [], contact: null }
+            },
+            
+            // ============================================
+            // 7. НЕ ПОЛУЧАЕТСЯ СОЗДАТЬ ДАВЛЕНИЕ ПРИ НАГНЕТАНИИ
+            // ============================================
+            
+            no_pressure_step1: {
+                situation: 'Не получается создать давление при нагнетании',
+                step: 1, totalSteps: 1,
+                question: 'Есть ли расход? (Меняются ли показания на счётчике?)',
+                comment: '',
+                answers: [
+                    { text: 'Да', next: 'no_pressure_solution_packer', type: 'yes' },
+                    { text: 'Нет', next: 'no_pressure_solution_pump', type: 'no' },
+                ]
+            },
+            
+            no_pressure_solution_packer: {
+                situation: 'Не получается создать давление при нагнетании',
                 solution: {
-                    emoji: '⬇️',
-                    text: 'Если есть возможность, стоит заглубить насос на 10+ метров.',
+                    text: 'Проверьте герметичность пакера.',
                     steps: [
-                        'Если нет такой возможности — следует проводить откачку с особой осторожностью, чтобы не произошло осушения насоса.'
+                        'Если пакер раздут, то возможно интервал проницаемый — проверьте керн.',
+                        'Возможно есть обходная фильтрация — попробуйте переставить на 1-2 метра выше или ниже.',
+                        'Если к керну нет вопросов — переходите к откачке/наливу.'
                     ],
                     contact: null
                 }
             },
             
-            debit_solution_same: {
-                situation: 'Как подобрать дебит?',
+            no_pressure_solution_pump: {
+                situation: 'Не получается создать давление при нагнетании',
                 solution: {
-                    emoji: '✅',
-                    text: 'Завершив восстановление после прокачки, приступайте к откачке с такими же параметрами.',
-                    steps: [],
+                    text: 'Проверить работу бурового насоса.',
+                    steps: [
+                        'Возможно где-то засор или ледяная пробка в шлангах.'
+                    ],
+                    contact: null
+                }
+            },
+            
+            // ============================================
+            // 8. КАК ВЫБРАТЬ ДАВЛЕНИЕ ПРИ НАГНЕТАНИИ (инфо)
+            // ============================================
+            
+            pressure_guide: {
+                situation: 'Как выбрать давление при нагнетании',
+                solution: {
+                    text: 'Рекомендуемые ступени давления: 0.5 Pmax — 0.75 Pmax — Pmax — 0.75 Pmax — 0.5 Pmax.',
+                    steps: [
+                        'Pmax определяется опытным путём: начните с 5 бар. Если есть расход — это ваша первая ступень, Pmax тогда будет 10 бар.',
+                        'Если расхода нет — увеличьте давление.',
+                        'Больше 25 бар делать не стоит — может не выдержать оборудование.',
+                        'Переход на следующую ступень происходит после стабилизации расхода на протяжении не менее 10 минут.'
+                    ],
                     contact: null
                 }
             }
         };
         
         // ============================================
-        // ЛОГИКА ПРИЛОЖЕНИЯ
+        // ЛОГИКА
         // ============================================
         
         let history = ['menu'];
@@ -975,7 +879,6 @@
             if (node.type === 'menu') {
                 card.className = 'card';
                 card.innerHTML = `
-                    <div style="text-align:center;font-size:48px;margin-bottom:12px;">${node.emoji}</div>
                     <div class="question" style="text-align:center;margin-bottom:20px;">${node.title}</div>
                     <div class="answers">
                         ${node.items.map(item => `
@@ -1021,7 +924,6 @@
                 card.innerHTML = `
                     ${situationHTML}
                     <div class="solution-label">Решение</div>
-                    <div class="solution-emoji">${node.solution.emoji}</div>
                     <div class="solution-text">${node.solution.text}</div>
                     ${stepsHTML}
                     ${contactHTML}
@@ -1060,7 +962,6 @@
             card.innerHTML = `
                 ${situationHTML}
                 <div class="step-number">Шаг ${node.step} из ${node.totalSteps || 1}</div>
-                <div class="question-emoji">${node.emoji}</div>
                 <div class="question">${node.question}</div>
                 ${commentHTML}
                 <div class="answers">
@@ -1098,7 +999,7 @@
         // АВТООБНОВЛЕНИЕ
         // ============================================
         
-        const APP_VERSION = 3;
+        const APP_VERSION = 4;
         
         let updateChecked = false;
         
@@ -1109,19 +1010,15 @@
             try {
                 const response = await fetch(window.location.href, { cache: 'no-store' });
                 const newText = await response.text();
-                
                 const match = newText.match(/const APP_VERSION = (\d+)/);
                 
                 if (match) {
                     const serverVersion = parseInt(match[1]);
-                    
                     if (serverVersion > APP_VERSION) {
                         document.getElementById('updateBar').classList.add('show');
                     }
                 }
-            } catch (e) {
-                // Офлайн
-            }
+            } catch (e) {}
         }
         
         async function updateApp() {
@@ -1142,11 +1039,8 @@
                 
                 setTimeout(() => {
                     statusEl.textContent = 'Готово!';
-                    setTimeout(() => {
-                        window.location.reload(true);
-                    }, 500);
+                    setTimeout(() => { window.location.reload(true); }, 500);
                 }, 800);
-                
             } catch (e) {
                 statusEl.textContent = 'Ошибка';
                 setTimeout(() => statusEl.classList.remove('show'), 2000);
