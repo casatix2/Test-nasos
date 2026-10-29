@@ -16,15 +16,8 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register("data:text/javascript;charset=utf-8," + encodeURIComponent(`
                 const CACHE = 'nnts-cache';
-                
-                self.addEventListener('install', e => {
-                    self.skipWaiting();
-                });
-                
-                self.addEventListener('activate', e => {
-                    self.clients.claim();
-                });
-                
+                self.addEventListener('install', e => { self.skipWaiting(); });
+                self.addEventListener('activate', e => { self.clients.claim(); });
                 self.addEventListener('fetch', e => {
                     e.respondWith(
                         fetch(e.request)
@@ -36,14 +29,9 @@
                             .catch(() => caches.match(e.request))
                     );
                 });
-                
                 self.addEventListener('message', e => {
                     if (e.data === 'clearCache') {
-                        e.waitUntil(
-                            caches.delete(CACHE).then(() => {
-                                self.skipWaiting();
-                            })
-                        );
+                        e.waitUntil(caches.delete(CACHE).then(() => { self.skipWaiting(); }));
                     }
                 });
             `));
@@ -139,6 +127,19 @@
             letter-spacing: 0.5px;
         }
         
+        .block-badge {
+            display: inline-block;
+            background: rgba(233, 68, 96, 0.2);
+            color: var(--accent);
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+        }
+        
         .step-number { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
         
         .question {
@@ -188,6 +189,13 @@
         .btn-yes { background: var(--success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
         .btn-no { background: var(--accent); box-shadow: 0 4px 15px rgba(233, 68, 96, 0.3); }
         .btn-extra { background: #2980b9; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
+        
+        .btn-block {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border: 1px solid rgba(52, 152, 219, 0.4);
+            padding: 24px 20px;
+            font-size: 17px;
+        }
         
         .btn-back {
             background: transparent;
@@ -255,6 +263,13 @@
         .contact-label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
         .contact-name { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
         .contact-phone { font-size: 20px; font-weight: 700; color: #fff; }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
         
         .update-bar {
             position: fixed;
@@ -340,11 +355,24 @@
     <div class="update-status" id="updateStatus"></div>
     
     <script>
-        const tree = {
-            
+        // ============================================
+        // БЛОКИ И СИТУАЦИИ
+        // ============================================
+        
+        const blocks = {
             menu: {
                 type: 'menu',
-                title: 'Выберите ситуацию',
+                title: 'Выберите блок',
+                items: [
+                    { text: 'ОФР', next: 'block_ofr', description: 'Оперативный физический режим' },
+                    { text: 'Оборудование скважин', next: 'block_equipment', description: 'Пока пусто' },
+                ]
+            },
+            
+            block_ofr: {
+                type: 'menu',
+                title: 'ОФР — выберите ситуацию',
+                blockName: 'ОФР',
                 items: [
                     { text: 'Низкий уровень подземных вод', next: 'low_water_step1' },
                     { text: 'Уровень воды "на оголовке"', next: 'on_head_step1' },
@@ -354,7 +382,17 @@
                     { text: 'Как подобрать дебит при откачке или наливе?', next: 'debit_step1' },
                     { text: 'Не получается создать давление при нагнетании', next: 'no_pressure_step1' },
                     { text: 'Как выбрать давление при нагнетании', next: 'pressure_guide' },
+                    { text: 'Происходит повышение уровня при откачке', next: 'rising_guide' },
+                    { text: 'Как выбрать место установки пакерного агрегата', next: 'packer_place_step1' },
                 ]
+            },
+            
+            block_equipment: {
+                type: 'menu',
+                title: 'Оборудование скважин',
+                blockName: 'Оборудование скважин',
+                items: [],
+                empty: true
             },
             
             // ============================================
@@ -362,6 +400,7 @@
             // ============================================
             
             low_water_step1: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 step: 1, totalSteps: 3,
                 question: 'Установлен ли пакер?',
@@ -374,6 +413,7 @@
             },
             
             low_water_step2: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 step: 2, totalSteps: 3,
                 question: 'Уровень ниже пакера?',
@@ -386,6 +426,7 @@
             },
             
             low_water_step3: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 step: 3, totalSteps: 3,
                 question: 'Есть ли возможность спустить насос?',
@@ -397,6 +438,7 @@
             },
             
             low_water_solution_packer: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 solution: {
                     text: 'Достаём пакер и проверяем датчик.',
@@ -413,6 +455,7 @@
             },
             
             low_water_solution_pump: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 solution: {
                     text: 'Спускаем насос и делаем прокачку.',
@@ -427,6 +470,7 @@
             },
             
             low_water_solution_sensor: {
+                block: 'ОФР',
                 situation: 'Низкий уровень подземных вод',
                 solution: {
                     text: 'Спускаем датчик под уровень воды и делаем налив/экспресс-налив.',
@@ -445,6 +489,7 @@
             // ============================================
             
             on_head_step1: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 step: 1, totalSteps: 3,
                 question: 'Установлен ли пакер?',
@@ -456,6 +501,7 @@
             },
             
             on_head_step2: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 step: 2, totalSteps: 3,
                 question: 'Как ведет себя уровень после "отстрела"?',
@@ -468,6 +514,7 @@
             },
             
             on_head_step3: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 step: 3, totalSteps: 3,
                 question: 'Как ведет себя уровень?',
@@ -479,6 +526,7 @@
             },
             
             on_head_solution_observe: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
                     text: 'Наблюдаем за уровнем.',
@@ -492,6 +540,7 @@
             },
             
             on_head_solution_inject: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
                     text: 'Делаем нагнетание.',
@@ -504,6 +553,7 @@
             },
             
             on_head_solution_wait: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
                     text: 'Дожидаемся статического уровня или спускаем насос.',
@@ -516,6 +566,7 @@
             },
             
             on_head_solution_annulus: {
+                block: 'ОФР',
                 situation: 'Уровень воды "на оголовке"',
                 solution: {
                     text: 'Обратите внимание на затрубное пространство.',
@@ -533,6 +584,7 @@
             // ============================================
             
             dry_pump_step1: {
+                block: 'ОФР',
                 situation: 'Происходит "осушение" насоса при прокачке/откачке',
                 step: 1, totalSteps: 1,
                 question: 'Есть ли возможность спустить насос глубже?',
@@ -545,6 +597,7 @@
             },
             
             dry_pump_solution_deeper: {
+                block: 'ОФР',
                 situation: 'Происходит "осушение" насоса',
                 solution: {
                     text: 'Спускайте насос глубже.',
@@ -557,6 +610,7 @@
             },
             
             dry_pump_solution_change: {
+                block: 'ОФР',
                 situation: 'Происходит "осушение" насоса',
                 solution: {
                     text: 'Поменяйте насос на менее производительный.',
@@ -570,6 +624,7 @@
             },
             
             dry_pump_solution_inject: {
+                block: 'ОФР',
                 situation: 'Происходит "осушение" насоса',
                 solution: {
                     text: 'Достаём насос и делаем налив/нагнетание (при наличии пакера).',
@@ -583,6 +638,7 @@
             // ============================================
             
             stop_pump_step1: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 step: 1, totalSteps: 3,
                 question: 'Сколько прошло времени откачки?',
@@ -595,6 +651,7 @@
             },
             
             stop_pump_step2: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 step: 2, totalSteps: 3,
                 question: 'Достигло ли понижение стационарного режима?',
@@ -606,6 +663,7 @@
             },
             
             stop_pump_step3: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 step: 3, totalSteps: 3,
                 question: 'Сколько воды над насосом на данный момент?',
@@ -618,11 +676,13 @@
             },
             
             stop_pump_solution_finish: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 solution: { text: 'Завершаем откачку и переходим к восстановлению уровня.', steps: [], contact: null }
             },
             
             stop_pump_solution_continue: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 solution: {
                     text: 'Продолжаем откачку и наблюдение за уровнем.',
@@ -632,16 +692,19 @@
             },
             
             stop_pump_solution_stop: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 solution: { text: 'Выключаем насос и переходим к восстановлению. Сообщите контактному лицу.', steps: [], contact: { name: 'Старший гидрогеолог', person: 'Касатых Андрей Евгеньевич', phone: '+7 (999) 721-68-79' } }
             },
             
             stop_pump_solution_careful: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 solution: { text: 'Продолжаем откачку и наблюдение за уровнем. Если уровень над насосом достигнет < 1 метра — стоит прекратить откачку и начать восстановление.', steps: [], contact: null }
             },
             
             stop_pump_solution_keep: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать откачку?',
                 solution: { text: 'Продолжаем качать.', steps: [], contact: null }
             },
@@ -651,6 +714,7 @@
             // ============================================
             
             stop_recovery_step1: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 step: 1, totalSteps: 3,
                 question: 'Какой вид опыта?',
@@ -662,6 +726,7 @@
             },
             
             stop_recovery_step2: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 step: 2, totalSteps: 3,
                 question: 'Какое изменение уровня наблюдается последние 3-4 часа?',
@@ -674,6 +739,7 @@
             },
             
             stop_recovery_step3: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 step: 3, totalSteps: 3,
                 question: 'Выберите подборку параметров на текущий момент:',
@@ -686,21 +752,25 @@
             },
             
             stop_recovery_solution_finish: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 solution: { text: 'Восстановление можно завершать.', steps: [], contact: null }
             },
             
             stop_recovery_solution_finish_graph: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 solution: { text: 'Восстановление можно завершать при условии, что в логарифмическом масштабе график будет интерпретируемый при обработке.', steps: [], contact: null }
             },
             
             stop_recovery_solution_wait: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 solution: { text: 'Продолжаем наблюдение за уровнем.', steps: [], contact: null }
             },
             
             stop_recovery_solution_inject: {
+                block: 'ОФР',
                 situation: 'Когда заканчивать восстановление?',
                 solution: { text: 'Следует выполнить нагнетание, интервал "глухой".', steps: [], contact: null }
             },
@@ -710,6 +780,7 @@
             // ============================================
             
             debit_step1: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит при откачке или наливе?',
                 step: 1, totalSteps: 4,
                 question: 'Какой вид опыта?',
@@ -721,6 +792,7 @@
             },
             
             debit_solution_naliv: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит?',
                 solution: {
                     text: 'Попробуйте для начала средний дебит бурового насоса (обычно около 3.5 м³/час).',
@@ -734,6 +806,7 @@
             },
             
             debit_step2: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит при откачке или наливе?',
                 step: 2, totalSteps: 4,
                 question: 'Была ли сделана прокачка?',
@@ -745,11 +818,13 @@
             },
             
             debit_solution_do_pump: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит?',
                 solution: { text: 'Сделайте прокачку любым доступным насосом. По результатам прокачки возможно появится понимание о дебите и понижении.', steps: [], contact: null }
             },
             
             debit_step3: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит при откачке или наливе?',
                 step: 3, totalSteps: 4,
                 question: 'Какие показания были получены при прокачке?',
@@ -762,6 +837,7 @@
             },
             
             debit_solution_stronger: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит?',
                 solution: {
                     text: 'Стоит поставить более производительный насос.',
@@ -771,6 +847,7 @@
             },
             
             debit_step4: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит при откачке или наливе?',
                 step: 4, totalSteps: 4,
                 question: 'Сколько метров воды над насосом к концу прокачки?',
@@ -782,11 +859,13 @@
             },
             
             debit_solution_deeper: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит?',
                 solution: { text: 'Если есть возможность, стоит заглубить насос на 10+ метров. Если нет такой возможности — следует проводить откачку с особой осторожностью, чтобы не произошло осушения насоса.', steps: [], contact: null }
             },
             
             debit_solution_same: {
+                block: 'ОФР',
                 situation: 'Как подобрать дебит?',
                 solution: { text: 'Завершив восстановление после прокачки, приступайте к откачке с такими же параметрами.', steps: [], contact: null }
             },
@@ -796,6 +875,7 @@
             // ============================================
             
             no_pressure_step1: {
+                block: 'ОФР',
                 situation: 'Не получается создать давление при нагнетании',
                 step: 1, totalSteps: 1,
                 question: 'Есть ли расход? (Меняются ли показания на счётчике?)',
@@ -807,6 +887,7 @@
             },
             
             no_pressure_solution_packer: {
+                block: 'ОФР',
                 situation: 'Не получается создать давление при нагнетании',
                 solution: {
                     text: 'Проверьте герметичность пакера.',
@@ -820,12 +901,11 @@
             },
             
             no_pressure_solution_pump: {
+                block: 'ОФР',
                 situation: 'Не получается создать давление при нагнетании',
                 solution: {
                     text: 'Проверить работу бурового насоса.',
-                    steps: [
-                        'Возможно где-то засор или ледяная пробка в шлангах.'
-                    ],
+                    steps: ['Возможно где-то засор или ледяная пробка в шлангах.'],
                     contact: null
                 }
             },
@@ -835,6 +915,7 @@
             // ============================================
             
             pressure_guide: {
+                block: 'ОФР',
                 situation: 'Как выбрать давление при нагнетании',
                 solution: {
                     text: 'Рекомендуемые ступени давления: 0.5 Pmax — 0.75 Pmax — Pmax — 0.75 Pmax — 0.5 Pmax.',
@@ -844,6 +925,60 @@
                         'Больше 25 бар делать не стоит — может не выдержать оборудование.',
                         'Переход на следующую ступень происходит после стабилизации расхода на протяжении не менее 10 минут.'
                     ],
+                    contact: null
+                }
+            },
+            
+            // ============================================
+            // 9. ПРОИСХОДИТ ПОВЫШЕНИЕ УРОВНЯ ПРИ ОТКАЧКЕ (инфо)
+            // ============================================
+            
+            rising_guide: {
+                block: 'ОФР',
+                situation: 'Происходит повышение уровня при откачке',
+                solution: {
+                    text: 'Такое происходит обычно в трёх случаях:',
+                    steps: [
+                        'Вы делаете опыт в зоне аэрации (верхний интервал) и сейчас паводковый период — это учитывается при последующей обработке, можно продолжать.',
+                        'Сброс уровня воды около скважины — нужно сделать отвод воды от буровой не менее 30-40 метров.',
+                        'Скважина "раскачивается" — нужно дождаться стабилизации уровня, отключить насос, подождать восстановления и запустить откачку заново.'
+                    ],
+                    contact: null
+                }
+            },
+            
+            // ============================================
+            // 10. КАК ВЫБРАТЬ МЕСТО УСТАНОВКИ ПАКЕРНОГО АГРЕГАТА
+            // ============================================
+            
+            packer_place_step1: {
+                block: 'ОФР',
+                situation: 'Как выбрать место установки пакерного агрегата',
+                step: 1, totalSteps: 1,
+                question: 'Вы можете поставить пакер в конец прошлого интервала?',
+                comment: 'Пакерный агрегат нужно устанавливать в породы не подверженные зонам разломов и сильной трещиноватости.',
+                answers: [
+                    { text: 'Да', next: 'packer_place_solution_end', type: 'yes' },
+                    { text: 'Нет', next: 'packer_place_solution_higher', type: 'no' },
+                ]
+            },
+            
+            packer_place_solution_end: {
+                block: 'ОФР',
+                situation: 'Как выбрать место установки пакерного агрегата',
+                solution: {
+                    text: 'Ставьте пакер в конец предыдущего интервала.',
+                    steps: ['Допускается небольшое перекрытие (немного выше, но не ниже).'],
+                    contact: null
+                }
+            },
+            
+            packer_place_solution_higher: {
+                block: 'ОФР',
+                situation: 'Как выбрать место установки пакерного агрегата',
+                solution: {
+                    text: 'Ставьте пакер намного выше предыдущего интервала в плотные породы.',
+                    steps: ['Сообщите об этом гидрогеологам ННТС.'],
                     contact: null
                 }
             }
@@ -876,26 +1011,49 @@
                 indicator.innerHTML = '<span class="step-badge done">Решение</span>';
             }
             
+            // Меню (блоки или ситуации)
             if (node.type === 'menu') {
                 card.className = 'card';
+                
+                if (node.empty) {
+                    card.innerHTML = `
+                        <div class="question" style="text-align:center;margin-bottom:20px;">${node.title}</div>
+                        <div class="empty-message">Раздел пока в разработке</div>
+                        <button class="btn btn-full btn-back" onclick="goBack()" style="margin-top:20px;">← Назад</button>
+                    `;
+                    return;
+                }
+                
                 card.innerHTML = `
                     <div class="question" style="text-align:center;margin-bottom:20px;">${node.title}</div>
                     <div class="answers">
                         ${node.items.map(item => `
-                            <button class="btn btn-full btn-yes" onclick="goTo('${item.next}')">
-                                ${item.text}
+                            <button class="btn btn-full ${stepId === 'menu' ? 'btn-block' : 'btn-yes'}" onclick="goTo('${item.next}')">
+                                <span style="flex:1;text-align:left;">
+                                    ${item.text}
+                                    ${item.description ? `<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:400;">${item.description}</div>` : ''}
+                                </span>
                             </button>
                         `).join('')}
+                        ${history.length > 1 ? `
+                            <button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>
+                        ` : ''}
                     </div>
                 `;
                 return;
             }
             
-            let situationHTML = '';
-            if (node.situation) {
-                situationHTML = `<div class="situation-badge">${node.situation}</div>`;
+            // Бейдж блока и ситуации
+            let badgesHTML = '';
+            if (node.block) {
+                badgesHTML += `<span class="block-badge">${node.block}</span>`;
             }
+            if (node.situation) {
+                badgesHTML += `<span class="situation-badge">${node.situation}</span>`;
+            }
+            const badgesBlock = badgesHTML ? `<div>${badgesHTML}</div>` : '';
             
+            // Решение
             if (node.solution) {
                 let contactHTML = '';
                 if (node.solution.contact) {
@@ -922,7 +1080,7 @@
                 
                 card.className = 'card solution-card';
                 card.innerHTML = `
-                    ${situationHTML}
+                    ${badgesBlock}
                     <div class="solution-label">Решение</div>
                     <div class="solution-text">${node.solution.text}</div>
                     ${stepsHTML}
@@ -933,6 +1091,7 @@
                 return;
             }
             
+            // Вопрос
             const answersHTML = node.answers.map(a => {
                 let btnClass = 'btn-yes';
                 if (a.type === 'no') { btnClass = 'btn-no'; }
@@ -960,7 +1119,7 @@
             
             card.className = 'card';
             card.innerHTML = `
-                ${situationHTML}
+                ${badgesBlock}
                 <div class="step-number">Шаг ${node.step} из ${node.totalSteps || 1}</div>
                 <div class="question">${node.question}</div>
                 ${commentHTML}
@@ -999,7 +1158,7 @@
         // АВТООБНОВЛЕНИЕ
         // ============================================
         
-        const APP_VERSION = 4;
+        const APP_VERSION = 5;
         
         let updateChecked = false;
         
