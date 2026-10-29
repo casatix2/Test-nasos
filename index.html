@@ -163,10 +163,8 @@
         .answers { display: flex; flex-direction: column; gap: 10px; }
         
         .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: block;
+            width: 100%;
             padding: 16px 20px;
             border: none;
             border-radius: 14px;
@@ -174,14 +172,14 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            text-align: center;
+            text-align: left;
             color: #fff;
             font-family: inherit;
             letter-spacing: 0.3px;
             -webkit-appearance: none;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            line-height: 1.3;
+            line-height: 1.4;
         }
         
         .btn:active { transform: scale(0.97); }
@@ -193,7 +191,7 @@
         .btn-block {
             background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
             border: 1px solid rgba(52, 152, 219, 0.4);
-            padding: 24px 20px;
+            padding: 20px;
             font-size: 17px;
         }
         
@@ -205,9 +203,8 @@
             margin-top: 6px;
             padding: 14px;
             font-size: 14px;
+            text-align: center;
         }
-        
-        .btn-full { width: 100%; }
         
         .solution-card {
             background: linear-gradient(135deg, #16213e 0%, #1a2744 100%);
@@ -355,11 +352,8 @@
     <div class="update-status" id="updateStatus"></div>
     
     <script>
-        // ============================================
-        // БЛОКИ И СИТУАЦИИ
-        // ============================================
-        
-        const blocks = {
+        const tree = {
+            
             menu: {
                 type: 'menu',
                 title: 'Выберите блок',
@@ -1011,7 +1005,7 @@
                 indicator.innerHTML = '<span class="step-badge done">Решение</span>';
             }
             
-            // Меню (блоки или ситуации)
+            // МЕНЮ
             if (node.type === 'menu') {
                 card.className = 'card';
                 
@@ -1024,26 +1018,42 @@
                     return;
                 }
                 
+                let buttonsHTML = '';
+                node.items.forEach(item => {
+                    const isBlock = stepId === 'menu';
+                    const btnClass = isBlock ? 'btn-block' : 'btn-yes';
+                    
+                    let descHTML = '';
+                    if (item.description) {
+                        descHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:400;">${item.description}</div>`;
+                    }
+                    
+                    buttonsHTML += `
+                        <button class="btn btn-full ${btnClass}" onclick="goTo('${item.next}')">
+                            <div style="width:100%;">
+                                <div>${item.text}</div>
+                                ${descHTML}
+                            </div>
+                        </button>
+                    `;
+                });
+                
+                let backHTML = '';
+                if (history.length > 1) {
+                    backHTML = `<button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>`;
+                }
+                
                 card.innerHTML = `
                     <div class="question" style="text-align:center;margin-bottom:20px;">${node.title}</div>
                     <div class="answers">
-                        ${node.items.map(item => `
-                            <button class="btn btn-full ${stepId === 'menu' ? 'btn-block' : 'btn-yes'}" onclick="goTo('${item.next}')">
-                                <span style="flex:1;text-align:left;">
-                                    ${item.text}
-                                    ${item.description ? `<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;font-weight:400;">${item.description}</div>` : ''}
-                                </span>
-                            </button>
-                        `).join('')}
-                        ${history.length > 1 ? `
-                            <button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>
-                        ` : ''}
+                        ${buttonsHTML}
+                        ${backHTML}
                     </div>
                 `;
                 return;
             }
             
-            // Бейдж блока и ситуации
+            // БЕЙДЖИ
             let badgesHTML = '';
             if (node.block) {
                 badgesHTML += `<span class="block-badge">${node.block}</span>`;
@@ -1053,7 +1063,7 @@
             }
             const badgesBlock = badgesHTML ? `<div>${badgesHTML}</div>` : '';
             
-            // Решение
+            // РЕШЕНИЕ
             if (node.solution) {
                 let contactHTML = '';
                 if (node.solution.contact) {
@@ -1091,8 +1101,9 @@
                 return;
             }
             
-            // Вопрос
-            const answersHTML = node.answers.map(a => {
+            // ВОПРОС
+            let answersHTML = '';
+            node.answers.forEach(a => {
                 let btnClass = 'btn-yes';
                 if (a.type === 'no') { btnClass = 'btn-no'; }
                 if (a.type === 'extra') { btnClass = 'btn-extra'; }
@@ -1102,19 +1113,24 @@
                     commentHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;font-weight:400;">${a.comment}</div>`;
                 }
                 
-                return `
+                answersHTML += `
                     <button class="btn btn-full ${btnClass}" onclick="goTo('${a.next}')">
-                        <span style="flex:1;text-align:left;">
-                            ${a.text}
+                        <div style="width:100%;">
+                            <div>${a.text}</div>
                             ${commentHTML}
-                        </span>
+                        </div>
                     </button>
                 `;
-            }).join('');
+            });
             
             let commentHTML = '';
             if (node.comment) {
                 commentHTML = `<div class="question-comment">${node.comment}</div>`;
+            }
+            
+            let backHTML = '';
+            if (history.length > 1) {
+                backHTML = `<button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>`;
             }
             
             card.className = 'card';
@@ -1125,9 +1141,7 @@
                 ${commentHTML}
                 <div class="answers">
                     ${answersHTML}
-                    ${history.length > 1 ? `
-                        <button class="btn btn-full btn-back" onclick="goBack()">← Назад</button>
-                    ` : ''}
+                    ${backHTML}
                     <button class="btn btn-full btn-back" onclick="goToMenu()">К списку ситуаций</button>
                 </div>
             `;
@@ -1158,7 +1172,7 @@
         // АВТООБНОВЛЕНИЕ
         // ============================================
         
-        const APP_VERSION = 5;
+        const APP_VERSION = 6;
         
         let updateChecked = false;
         
